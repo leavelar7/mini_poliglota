@@ -1,30 +1,36 @@
-// "Pequeno Pato" design language — soft, rounded, high-contrast for pre-readers.
-// Inspired by the pastel storybook look of O Pequeno Urso (TV Cultura).
+// "Pequeno Pato" design language — a warm, painterly storybook look inspired
+// by the muted forest/pond palette of O Pequeno Urso (TV Cultura): parchment
+// backgrounds, soft sage/honey/terracotta tones, hand-illustrated feel rather
+// than glossy flat-vector cartoon colors.
 
 export const colors = {
-  sky: '#BFE6F5',
-  skyDeep: '#8FD3EC',
-  pondGreen: '#CDEFC4',
-  sun: '#FFD469',
-  sunDeep: '#FFB84D',
-  duckOrange: '#FF9642',
-  berry: '#FF7A7A',
-  plum: '#7A5FB8',
-  ink: '#3A3A4A',
-  inkSoft: '#6B6B80',
-  card: '#FFFFFF',
-  cardAlt: '#FFF6E5',
-  success: '#5FCB8E',
-  successDeep: '#3FAF71',
-  warn: '#FF8A65',
-  shadow: 'rgba(58, 58, 74, 0.15)',
+  parchment: '#F4ECDA',
+  parchmentDeep: '#EADFC3',
+  forest: '#7C9A6E',
+  forestDeep: '#5F7F52',
+  pond: '#8FB6C7',
+  pondDeep: '#6B96A8',
+  honey: '#E3A94B',
+  honeyDeep: '#C98A2E',
+  rust: '#C4704A',
+  rustDeep: '#A65B39',
+  plum: '#8C7196',
+  plumDeep: '#6F5876',
+  ink: '#4A3B2D',
+  inkSoft: '#7C6A55',
+  card: '#FFFBF1',
+  cardAlt: '#F6EAD2',
+  success: '#6FA35C',
+  successDeep: '#4F7F3F',
+  warn: '#C4704A',
+  shadow: 'rgba(74, 59, 45, 0.20)',
 } as const;
 
 export const languageColors: Record<string, string> = {
-  en: '#5B9BD5',
-  es: '#FF8A65',
-  it: '#6BC26B',
-  de: '#F2C94C',
+  en: '#6C93A6',
+  es: '#C4704A',
+  it: '#7C9A6E',
+  de: '#D9A055',
 };
 
 export const languageLabels: Record<string, { name: string; flag: string }> = {

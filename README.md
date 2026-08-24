@@ -40,7 +40,10 @@ npx expo run:android     # build de desenvolvimento no Android — necessário p
 - [x] **M2** — Captura e avaliação da fala da criança: `expo-speech-recognition` ouve a
       palavra falada, `matchWord.ts` pontua a transcrição contra o alvo, com fallback manual
       sempre disponível (mic indisponível/negado, ou erro de reconhecimento).
-- [ ] **M3** — Ilustrações reais no lugar dos emojis, polimento de animações/mascote.
+- [ ] **M3** — em andamento. Feito: paleta e cenário repaginados no estilo pastel/aquarela
+      de "O Pequeno Urso" (parchment + tons de floresta/lagoa, `NatureBackdrop.tsx`), mascote
+      com contorno "desenhado à mão" (`DuckMascot.tsx`). Falta: ilustrações reais no lugar dos
+      emojis nas cartas de palavra.
 - [x] **M4** — Backend Supabase: autenticação dos pais (email/senha), schema com RLS
       (`supabase/migrations/0001_init.sql`), sincronização best-effort ao fim de cada sessão,
       dashboard lendo da nuvem com fallback automático para os dados locais.

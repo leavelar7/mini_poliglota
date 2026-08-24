@@ -7,22 +7,24 @@ interface Props {
   mood?: 'happy' | 'cheer' | 'wink';
 }
 
-// A simple, friendly duck mascot in the flat pastel storybook style
-// of "O Pequeno Urso" — stands in for a bear, per the product brief.
+// A friendly duck mascot with a hand-inked, painterly storybook feel —
+// visible ink outlines and a muted honey/rust palette — standing in for a
+// bear, per the product brief, in the spirit of "O Pequeno Urso" (TV Cultura).
 export function DuckMascot({ size = 140, mood = 'happy' }: Props) {
+  const outline = { stroke: colors.ink, strokeWidth: 3 };
   return (
     <Svg width={size} height={size} viewBox="0 0 200 200">
       <Ellipse cx="100" cy="180" rx="55" ry="10" fill={colors.shadow} />
       {/* body */}
-      <Ellipse cx="100" cy="120" rx="62" ry="52" fill={colors.sun} />
+      <Ellipse cx="100" cy="120" rx="62" ry="52" fill={colors.honey} {...outline} />
       {/* belly */}
       <Ellipse cx="100" cy="132" rx="38" ry="30" fill={colors.cardAlt} />
       {/* wing */}
-      <Ellipse cx="145" cy="118" rx="18" ry="26" fill={colors.sunDeep} />
+      <Ellipse cx="145" cy="118" rx="18" ry="26" fill={colors.honeyDeep} {...outline} />
       {/* head */}
-      <Circle cx="100" cy="62" r="46" fill={colors.sun} />
+      <Circle cx="100" cy="62" r="46" fill={colors.honey} {...outline} />
       {/* beak */}
-      <Path d="M60 66 Q30 62 58 82 Q62 78 68 72 Z" fill={colors.duckOrange} />
+      <Path d="M60 66 Q30 62 58 82 Q62 78 68 72 Z" fill={colors.rust} {...outline} />
       {/* eyes */}
       <Circle cx="88" cy="55" r="6" fill={colors.ink} />
       <Circle cx="120" cy="55" r="6" fill={colors.ink} />
@@ -33,11 +35,11 @@ export function DuckMascot({ size = 140, mood = 'happy' }: Props) {
         </>
       )}
       {/* cheeks */}
-      <Circle cx="72" cy="68" r="7" fill={colors.berry} opacity={0.4} />
-      <Circle cx="128" cy="68" r="7" fill={colors.berry} opacity={0.4} />
+      <Circle cx="72" cy="68" r="7" fill={colors.rust} opacity={0.35} />
+      <Circle cx="128" cy="68" r="7" fill={colors.rust} opacity={0.35} />
       {/* feet */}
-      <Path d="M78 168 L70 182 L86 182 Z" fill={colors.duckOrange} />
-      <Path d="M122 168 L114 182 L130 182 Z" fill={colors.duckOrange} />
+      <Path d="M78 168 L70 182 L86 182 Z" fill={colors.rust} {...outline} />
+      <Path d="M122 168 L114 182 L130 182 Z" fill={colors.rust} {...outline} />
     </Svg>
   );
 }

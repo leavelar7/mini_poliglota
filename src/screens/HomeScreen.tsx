@@ -4,6 +4,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/RootNavigator';
 import { DuckMascot } from '../components/DuckMascot';
 import { BigButton } from '../components/BigButton';
+import { NatureBackdrop } from '../components/NatureBackdrop';
 import { colors, spacing, typography } from '../theme/theme';
 import { loadStreak, StreakInfo } from '../lib/storage';
 
@@ -18,6 +19,7 @@ export function HomeScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <NatureBackdrop />
       <View style={styles.content}>
         <DuckMascot size={180} />
         <Text style={styles.title}>Mini Poliglota</Text>
@@ -42,7 +44,7 @@ export function HomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.sky },
+  container: { flex: 1, backgroundColor: colors.parchment },
   content: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   title: { ...typography.display, color: colors.ink, marginTop: spacing.md },
   subtitle: { ...typography.body, color: colors.inkSoft, marginTop: spacing.sm, textAlign: 'center' },

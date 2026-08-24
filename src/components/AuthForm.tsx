@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   subtitle: { ...typography.caption, color: colors.inkSoft, textAlign: 'center', marginTop: spacing.xs, marginBottom: spacing.md },
   input: {
     borderWidth: 2,
-    borderColor: colors.sky,
+    borderColor: colors.pond,
     borderRadius: radii.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,

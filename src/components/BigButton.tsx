@@ -10,7 +10,7 @@ interface Props {
   style?: ViewStyle;
 }
 
-export function BigButton({ label, onPress, color = colors.duckOrange, textColor = '#fff', style }: Props) {
+export function BigButton({ label, onPress, color = colors.honey, textColor = '#fff', style }: Props) {
   return (
     <Pressable
       onPress={onPress}

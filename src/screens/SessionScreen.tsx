@@ -7,6 +7,7 @@ import { WordCard } from '../components/WordCard';
 import { BigButton } from '../components/BigButton';
 import { DuckMascot } from '../components/DuckMascot';
 import { SpeechAnswer } from '../components/SpeechAnswer';
+import { NatureBackdrop } from '../components/NatureBackdrop';
 import { colors, spacing, typography } from '../theme/theme';
 import { LANGUAGES, TTS_LOCALE, getWord } from '../data/words';
 import { buildDailySession, ProgressMap, recordAnswer, refreshForgotten, SessionCard } from '../lib/srs';
@@ -89,6 +90,7 @@ export function SessionScreen({ navigation }: Props) {
   if (done) {
     return (
       <SafeAreaView style={styles.container}>
+        <NatureBackdrop />
         <View style={styles.content}>
           <DuckMascot size={160} mood="cheer" />
           <Text style={styles.title}>Muito bem! 🎉</Text>
@@ -113,6 +115,7 @@ export function SessionScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <NatureBackdrop />
       <View style={styles.header}>
         <ProgressBar current={index + 1} total={cards.length} />
         <Text style={styles.blockLabel}>Idioma {langBlock} de {LANGUAGES.length}</Text>
@@ -154,10 +157,10 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.sky },
+  container: { flex: 1, backgroundColor: colors.parchment },
   header: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
-  progressTrack: { height: 10, borderRadius: 999, backgroundColor: '#ffffff88', overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: colors.duckOrange, borderRadius: 999 },
+  progressTrack: { height: 10, borderRadius: 999, backgroundColor: '#ffffffaa', overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: colors.honey, borderRadius: 999 },
   blockLabel: { ...typography.caption, color: colors.inkSoft, marginTop: spacing.xs, textAlign: 'center' },
   content: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   title: { ...typography.display, color: colors.ink, marginTop: spacing.md, textAlign: 'center' },

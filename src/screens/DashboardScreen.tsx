@@ -11,6 +11,7 @@ import { fetchDashboardData } from '../lib/cloudSync';
 import { computeLanguageStats, computeWeakWords, LanguageStat, ProgressEntry, WeakWord } from '../lib/dashboardStats';
 import { AuthForm } from '../components/AuthForm';
 import { BigButton } from '../components/BigButton';
+import { NatureBackdrop } from '../components/NatureBackdrop';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Dashboard'>;
 
@@ -82,6 +83,7 @@ export function DashboardScreen({ navigation }: Props) {
   if (session === 'loading') {
     return (
       <SafeAreaView style={[styles.container, styles.centered]}>
+        <NatureBackdrop variant="pond" />
         <ActivityIndicator color={colors.plum} />
       </SafeAreaView>
     );
@@ -90,6 +92,7 @@ export function DashboardScreen({ navigation }: Props) {
   if (!session) {
     return (
       <SafeAreaView style={[styles.container, styles.centered]}>
+        <NatureBackdrop variant="pond" />
         <AuthForm onSignedIn={() => {}} />
         <Text style={styles.localHint} onPress={loadLocal}>
           Ver progresso deste aparelho sem entrar
@@ -105,6 +108,7 @@ export function DashboardScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <NatureBackdrop variant="pond" />
       <View style={styles.headerRow}>
         <Text style={styles.title}>Progresso</Text>
         <Text style={styles.signOut} onPress={() => supabase.auth.signOut()}>
@@ -190,7 +194,7 @@ function WeakWordsList({ weakWords }: { weakWords: WeakWord[] }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.pondGreen, paddingHorizontal: spacing.lg },
+  container: { flex: 1, backgroundColor: colors.parchment, paddingHorizontal: spacing.lg },
   centered: { alignItems: 'center', justifyContent: 'center' },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: spacing.lg, paddingBottom: spacing.sm },
   title: { ...typography.title, color: colors.ink },

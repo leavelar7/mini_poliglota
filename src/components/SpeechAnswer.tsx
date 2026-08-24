@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderRadius: radii.lg,
     borderWidth: 3,
-    borderColor: colors.duckOrange,
+    borderColor: colors.honey,
     borderStyle: 'dashed',
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.lg,
