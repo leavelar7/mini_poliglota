@@ -52,6 +52,9 @@ npx expo run:android     # build de desenvolvimento no Android — necessário p
       (`supabase/migrations/0001_init.sql`), sincronização best-effort ao fim de cada sessão,
       dashboard lendo da nuvem com fallback automático para os dados locais.
 - [ ] **M5** — Publicação: build Android (EAS), versionamento no GitHub.
+- [x] **Preview web** — https://mini-poliglota.vercel.app (deploy manual via Vercel; mostra o
+      design, fluxo e ilustrações, mas sem microfone — reconhecimento de fala é nativo e não
+      roda em navegador). Deploy feito direto (sem GitHub linkado ainda — ver nota abaixo).
 
 ## Configurando o Supabase
 
@@ -61,6 +64,18 @@ npx expo run:android     # build de desenvolvimento no Android — necessário p
    (`Project Settings → API`).
 3. Por padrão o Supabase exige confirmação de email antes de liberar o login — para um app
    familiar isso pode ser desligado em `Authentication → Providers → Email → Confirm email`.
+
+## Deploy no Vercel
+
+O projeto Vercel `mini-poliglota` ainda não está conectado ao GitHub (a conta Vercel logada
+está associada a um usuário GitHub diferente de `leavelar7`, dono deste repositório — dá pra
+resolver reconectando a integração de Git nas configurações da conta Vercel). Até lá, deploys
+são feitos manualmente. Quando conectar:
+
+1. Configure `EXPO_PUBLIC_SUPABASE_URL` e `EXPO_PUBLIC_SUPABASE_ANON_KEY` como **Environment
+   Variables** do projeto no painel do Vercel (`Settings → Environment Variables`) — o
+   `vercel.json` sozinho não injeta essas variáveis no passo de build.
+2. Build command: `npm run build` · Output directory: `dist`.
 
 ## Notas técnicas
 
