@@ -79,7 +79,13 @@ export function SessionScreen({ navigation }: Props) {
     }
     setIntroLang(null);
     speak();
-  }, [index]); // eslint-disable-line react-hooks/exhaustive-deps
+    // `cards` loads asynchronously after mount while `index` stays 0, so
+    // cards.length has to be a dependency too — otherwise this effect's only
+    // run at index 0 happens before `current` exists (cards is still `[]`),
+    // and the very first word gets no flag intro and no audio at all. The
+    // real first-word intro then wrongly fires on the *second* word instead,
+    // once `index` changes for the first time.
+  }, [index, cards.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const finishSession = useCallback(
     async (finalProgress: ProgressMap, finalCorrect: number, wordsThisSession: number, msThisSession: number) => {
