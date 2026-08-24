@@ -10,6 +10,7 @@ import { colors, spacing, typography } from '../theme/theme';
 import { LANGUAGES, TTS_LOCALE, getWord } from '../data/words';
 import { buildDailySession, ProgressMap, recordAnswer, refreshForgotten, SessionCard } from '../lib/srs';
 import { loadProgress, loadStreak, registerSessionCompletion, saveProgress, saveStreak } from '../lib/storage';
+import { pushSessionResult } from '../lib/cloudSync';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Session'>;
 
@@ -48,11 +49,14 @@ export function SessionScreen({ navigation }: Props) {
     if (current) speak();
   }, [index]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const finishSession = useCallback(async (finalProgress: ProgressMap) => {
+  const finishSession = useCallback(async (finalProgress: ProgressMap, finalCorrect: number, totalCount: number) => {
     await saveProgress(finalProgress);
     const streak = await loadStreak();
     await saveStreak(registerSessionCompletion(streak, Date.now()));
     setDone(true);
+    // Best-effort: the local save above is the source of truth, so a flaky
+    // connection or a signed-out parent should never block finishing a session.
+    pushSessionResult(finalProgress, finalCorrect, totalCount).catch(() => {});
   }, []);
 
   const answer = useCallback(
@@ -63,14 +67,15 @@ export function SessionScreen({ navigation }: Props) {
       isAdvancingRef.current = true;
       const next = recordAnswer(progress, current.wordId, current.lang, correct, Date.now());
       setProgress(next);
-      if (correct) setCorrectInSession((c) => c + 1);
+      const finalCorrect = correctInSession + (correct ? 1 : 0);
+      if (correct) setCorrectInSession(finalCorrect);
       if (index + 1 >= cards.length) {
-        finishSession(next);
+        finishSession(next, finalCorrect, cards.length);
       } else {
         setIndex(index + 1);
       }
     },
-    [progress, current, index, cards.length, finishSession]
+    [progress, current, index, cards.length, correctInSession, finishSession]
   );
 
   const langBlock = useMemo(() => {

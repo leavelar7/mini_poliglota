@@ -29,8 +29,19 @@ npm run web        # preview rápido no navegador
       algoritmo de repetição espaçada local, dashboard local para os pais.
 - [ ] **M2** — Captura e avaliação da fala da criança (gravação + verificação de pronúncia).
 - [ ] **M3** — Ilustrações reais no lugar dos emojis, polimento de animações/mascote.
-- [ ] **M4** — Backend Supabase: autenticação dos pais, sincronização de progresso na nuvem.
+- [x] **M4** — Backend Supabase: autenticação dos pais (email/senha), schema com RLS
+      (`supabase/migrations/0001_init.sql`), sincronização best-effort ao fim de cada sessão,
+      dashboard lendo da nuvem com fallback automático para os dados locais.
 - [ ] **M5** — Publicação: build Android (EAS), versionamento no GitHub.
+
+## Configurando o Supabase
+
+1. Rode o SQL de `supabase/migrations/0001_init.sql` no **SQL Editor** do painel do Supabase
+   (cria as tabelas `children`, `word_progress`, `sessions` com row-level security).
+2. Copie `.env.example` para `.env` e preencha com a URL e a chave publicável do seu projeto
+   (`Project Settings → API`).
+3. Por padrão o Supabase exige confirmação de email antes de liberar o login — para um app
+   familiar isso pode ser desligado em `Authentication → Providers → Email → Confirm email`.
 
 ## Notas técnicas
 
