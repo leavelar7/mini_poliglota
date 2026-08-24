@@ -8,9 +8,14 @@ no estilo pastel de "O Pequeno Urso" (TV Cultura).
 
 ```bash
 npm install
-npm run android   # dispositivo/emulador Android
-npm run web        # preview rápido no navegador
+npm run web              # preview rápido no navegador (sem reconhecimento de fala nativo)
+npx expo run:android     # build de desenvolvimento no Android — necessário p/ o microfone
 ```
+
+> A partir do M2, o app usa um módulo nativo de reconhecimento de fala
+> (`expo-speech-recognition`), então **o Expo Go não funciona mais** — é preciso
+> gerar um development build (`npx expo run:android`, exige Android Studio/SDK
+> instalado) ou usar o EAS Build.
 
 ## Arquitetura
 
@@ -22,12 +27,19 @@ npm run web        # preview rápido no navegador
   áudio via `expo-speech` (TTS nativo, sem depender de arquivos de áudio).
 - `src/screens/DashboardScreen.tsx` — painel para os pais: palavras dominadas/em aprendizado
   por idioma e lista das palavras com mais erros.
+- `src/lib/matchWord.ts` — compara o que o reconhecimento de fala ouviu com a palavra-alvo
+  (distância de Levenshtein por palavra, com limiar mais rígido para palavras curtas).
+- `src/components/SpeechAnswer.tsx` — grava a criança falando (`expo-speech-recognition`),
+  pontua com `matchWord` e mostra o veredito; sempre com um atalho para responder manualmente
+  caso o microfone falhe ou a permissão seja negada.
 
 ## Roteiro de milestones
 
 - [x] **M1** — App base: design system, banco de palavras, sessão diária com TTS,
       algoritmo de repetição espaçada local, dashboard local para os pais.
-- [ ] **M2** — Captura e avaliação da fala da criança (gravação + verificação de pronúncia).
+- [x] **M2** — Captura e avaliação da fala da criança: `expo-speech-recognition` ouve a
+      palavra falada, `matchWord.ts` pontua a transcrição contra o alvo, com fallback manual
+      sempre disponível (mic indisponível/negado, ou erro de reconhecimento).
 - [ ] **M3** — Ilustrações reais no lugar dos emojis, polimento de animações/mascote.
 - [x] **M4** — Backend Supabase: autenticação dos pais (email/senha), schema com RLS
       (`supabase/migrations/0001_init.sql`), sincronização best-effort ao fim de cada sessão,
@@ -49,4 +61,7 @@ npm run web        # preview rápido no navegador
   assets de áudio, mas pode ser trocado por locuções gravadas depois.
 - As "figuras" das palavras são emojis por enquanto (zero dependência de assets); trocar por
   ilustrações no estilo do mascote é o foco do M3.
-- Avaliação de acerto/erro é manual (botões) até o M2 trazer reconhecimento de fala real.
+- Reconhecimento de fala: on-device no Android/iOS (via `SpeechRecognizer`/`SFSpeechRecognizer`,
+  sem custo por chamada), com fallback manual sempre visível. Ainda não testado num Android
+  físico — vale validar a precisão com a fala real da criança e ajustar os limiares em
+  `matchWord.ts` se necessário.

@@ -6,6 +6,7 @@ import { RootStackParamList } from '../navigation/RootNavigator';
 import { WordCard } from '../components/WordCard';
 import { BigButton } from '../components/BigButton';
 import { DuckMascot } from '../components/DuckMascot';
+import { SpeechAnswer } from '../components/SpeechAnswer';
 import { colors, spacing, typography } from '../theme/theme';
 import { LANGUAGES, TTS_LOCALE, getWord } from '../data/words';
 import { buildDailySession, ProgressMap, recordAnswer, refreshForgotten, SessionCard } from '../lib/srs';
@@ -20,6 +21,7 @@ export function SessionScreen({ navigation }: Props) {
   const [index, setIndex] = useState(0);
   const [done, setDone] = useState(false);
   const [correctInSession, setCorrectInSession] = useState(0);
+  const [showManual, setShowManual] = useState(false);
   const isAdvancingRef = useRef(false);
 
   useEffect(() => {
@@ -46,6 +48,7 @@ export function SessionScreen({ navigation }: Props) {
 
   useEffect(() => {
     isAdvancingRef.current = false;
+    setShowManual(false);
     if (current) speak();
   }, [index]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -122,10 +125,20 @@ export function SessionScreen({ navigation }: Props) {
           <Text style={styles.replayText}>🔊 Ouvir de novo</Text>
         </Pressable>
 
-        <View style={styles.answerRow}>
-          <BigButton label="🔁 De novo" onPress={() => answer(false)} color={colors.warn} style={styles.answerButton} />
-          <BigButton label="✅ Acertei" onPress={() => answer(true)} color={colors.success} style={styles.answerButton} />
+        <View style={styles.speechArea}>
+          <SpeechAnswer key={`${current.wordId}:${current.lang}`} targetWord={currentWord.translations[current.lang]} locale={TTS_LOCALE[current.lang]} onResult={answer} />
         </View>
+
+        {showManual ? (
+          <View style={styles.answerRow}>
+            <BigButton label="🔁 De novo" onPress={() => answer(false)} color={colors.warn} style={styles.answerButton} />
+            <BigButton label="✅ Acertei" onPress={() => answer(true)} color={colors.success} style={styles.answerButton} />
+          </View>
+        ) : (
+          <Pressable onPress={() => setShowManual(true)} style={styles.manualToggle}>
+            <Text style={styles.manualToggleText}>ou responder manualmente</Text>
+          </Pressable>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -151,6 +164,9 @@ const styles = StyleSheet.create({
   subtitle: { ...typography.body, color: colors.inkSoft, marginTop: spacing.sm, textAlign: 'center' },
   replayButton: { marginTop: spacing.lg, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
   replayText: { ...typography.body, color: colors.plum },
-  answerRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.xl, width: '100%' },
+  speechArea: { width: '100%', marginTop: spacing.md },
+  answerRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.md, width: '100%' },
   answerButton: { flex: 1 },
+  manualToggle: { marginTop: spacing.md, padding: spacing.xs },
+  manualToggleText: { ...typography.caption, color: colors.inkSoft, textDecorationLine: 'underline' },
 });

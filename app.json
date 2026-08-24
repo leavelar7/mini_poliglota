@@ -20,6 +20,15 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "O Mini Poliglota usa o microfone para ouvir você falando as palavras.",
+          "speechRecognitionPermission": "O Mini Poliglota usa o reconhecimento de fala para saber se você acertou a palavra."
+        }
+      ]
+    ]
   }
 }
