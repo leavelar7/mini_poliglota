@@ -23,6 +23,8 @@ const LISTEN_TIMEOUT_MS = 8000;
 export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [verdict, setVerdict] = useState<boolean | null>(null);
+  const [heard, setHeard] = useState('');
+  const [lastError, setLastError] = useState<string | null>(null);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const listenTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -53,6 +55,7 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
     const transcript = event.results[0]?.transcript ?? '';
     if (event.isFinal && transcript) {
       clearListenTimer();
+      setHeard(transcript);
       const match = scorePronunciation(transcript, targetWord);
       setVerdict(match.correct);
       setPhase('result');
@@ -67,6 +70,7 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
 
   useSpeechRecognitionEvent('error', (event) => {
     clearListenTimer();
+    setLastError(`${event.error}: ${event.message ?? ''}`);
     setPhase(event.error === 'not-allowed' || event.error === 'service-not-allowed' ? 'denied' : 'idle');
   });
 
@@ -77,6 +81,8 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
       return;
     }
     setVerdict(null);
+    setHeard('');
+    setLastError(null);
     setPhase('listening');
     ExpoSpeechRecognitionModule.start({
       lang: locale,
@@ -114,18 +120,26 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
     return (
       <View style={styles.resultBox}>
         <Text style={[styles.verdictIcon, { color: verdict ? colors.successDeep : colors.warn }]}>{verdict ? '✅' : '🔁'}</Text>
+        {/* Temporary diagnostic readout while we debug French recognition
+            accuracy — remove once matching is confirmed reliable. */}
+        <Text style={styles.debugHeard}>ouvi: "{heard || '(vazio)'}" — alvo: "{targetWord}"</Text>
       </View>
     );
   }
 
   return (
-    <Pressable
-      onPress={startListening}
-      disabled={phase === 'listening'}
-      style={({ pressed }) => [styles.micButton, phase === 'listening' && styles.micListening, { opacity: pressed ? 0.85 : 1 }]}
-    >
-      <Text style={styles.micIcon}>{phase === 'listening' ? '🔴' : '🎤'}</Text>
-    </Pressable>
+    <View style={{ width: '100%', alignItems: 'center' }}>
+      <Pressable
+        onPress={startListening}
+        disabled={phase === 'listening'}
+        style={({ pressed }) => [styles.micButton, phase === 'listening' && styles.micListening, { opacity: pressed ? 0.85 : 1 }]}
+      >
+        <Text style={styles.micIcon}>{phase === 'listening' ? '🔴' : '🎤'}</Text>
+      </Pressable>
+      {/* Temporary diagnostic readout while we debug French recognition
+          accuracy — remove once matching is confirmed reliable. */}
+      {lastError && <Text style={styles.debugHeard}>erro: {lastError}</Text>}
+    </View>
   );
 }
 
@@ -151,6 +165,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   verdictIcon: { fontSize: 48 },
+  debugHeard: { ...typography.caption, color: colors.inkSoft, marginTop: spacing.sm, textAlign: 'center' },
   hint: { ...typography.caption, color: colors.inkSoft, textAlign: 'center', width: '100%' },
   retryButton: { marginTop: spacing.md, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
   retryText: { ...typography.body, color: colors.plum },
