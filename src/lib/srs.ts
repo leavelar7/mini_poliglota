@@ -74,32 +74,51 @@ export interface SessionCard {
   reason: 'due' | 'new';
 }
 
+// Words per language before rotating to the next language, and how many
+// times to go around that rotation. The daily session is capped by the
+// 10-minute *time* budget (see dailyLimit.ts), not by how many cards exist
+// here — this is deliberately oversized (round-robin across every language
+// many times over) so the app never runs out of words before the clock
+// does. Whoever answers faster/more accurately naturally gets further
+// through it in 10 minutes; that's the "adapts to the user" behavior.
+const ROUND_BLOCK_SIZE = 4;
+const MAX_ROUNDS = 60;
+
 /**
- * Builds today's session, split evenly across the target languages,
- * prioritizing overdue reviews (most overdue first) before brand-new words.
+ * Builds a long, round-robin queue of cards cycling through every target
+ * language in blocks of ROUND_BLOCK_SIZE, prioritizing overdue reviews
+ * (most overdue first) before brand-new words, within each language. The
+ * caller consumes from this queue until the time budget runs out.
  */
-export function buildDailySession(map: ProgressMap, languages: LanguageCode[], now: number, totalCards = 10): SessionCard[] {
-  const perLanguage = Math.floor(totalCards / languages.length);
-  const remainder = totalCards - perLanguage * languages.length;
+export function buildDailySession(map: ProgressMap, languages: LanguageCode[], now: number): SessionCard[] {
+  const pools = new Map<LanguageCode, { wordId: string; reason: SessionCard['reason'] }[]>();
 
-  const session: SessionCard[] = [];
-
-  languages.forEach((lang, idx) => {
-    const slots = perLanguage + (idx < remainder ? 1 : 0);
-    if (slots <= 0) return;
+  for (const lang of languages) {
     const candidates = WORD_BANK.map((w) => ({ word: w, progress: map[keyOf(w.id, lang)] }));
-
     const due = candidates.filter((c) => c.progress && c.progress.lastSeenAt !== null && c.progress.nextReviewAt <= now);
     const fresh = candidates.filter((c) => statusOf(c.progress) === 'new');
-
     due.sort((a, b) => (a.progress?.nextReviewAt ?? 0) - (b.progress?.nextReviewAt ?? 0));
+    pools.set(
+      lang,
+      [...due, ...fresh].map((c) => ({ wordId: c.word.id, reason: statusOf(c.progress) === 'new' ? 'new' : ('due' as const) }))
+    );
+  }
 
-    const picked = [...due, ...fresh].slice(0, slots);
-    picked.forEach((c) => {
-      const reason: SessionCard['reason'] = statusOf(c.progress) === 'new' ? 'new' : 'due';
-      session.push({ wordId: c.word.id, lang, reason });
-    });
-  });
+  const session: SessionCard[] = [];
+  const cursor = new Map<LanguageCode, number>(languages.map((l) => [l, 0]));
+
+  for (let round = 0; round < MAX_ROUNDS; round++) {
+    let addedAny = false;
+    for (const lang of languages) {
+      const pool = pools.get(lang) ?? [];
+      const start = cursor.get(lang) ?? 0;
+      const slice = pool.slice(start, start + ROUND_BLOCK_SIZE);
+      slice.forEach((c) => session.push({ wordId: c.wordId, lang, reason: c.reason }));
+      cursor.set(lang, start + slice.length);
+      if (slice.length > 0) addedAny = true;
+    }
+    if (!addedAny) break; // every language ran out of due + new words
+  }
 
   return session;
 }

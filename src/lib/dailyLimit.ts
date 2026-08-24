@@ -1,10 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { todayKey } from './storage';
 
-// Hard daily cap per the project spec: whichever limit hits first ends the
-// day's practice — no way for the child to bypass it from inside the app.
-export const MAX_WORDS_PER_DAY = 10;
+// The real daily cap is time, per the project spec — 10 minutes ends the
+// day's practice, no way for the child to bypass it from inside the app.
+// The word count is just a generous safety ceiling (in practice the clock
+// always runs out first; this only guards against a pathological zero-
+// latency loop), NOT a target to hit — buildDailySession() hands out far
+// more words than could ever fit in 10 minutes, and time cuts it off.
 export const MAX_MS_PER_DAY = 10 * 60 * 1000;
+export const WORD_SAFETY_CAP = 300;
 
 const DAILY_USAGE_KEY = 'mini_poliglota:daily_usage:v1';
 
@@ -34,9 +38,5 @@ export function addUsage(usage: DailyUsage, wordsAnswered: number, msSpent: numb
 }
 
 export function isLockedOut(usage: DailyUsage): boolean {
-  return usage.wordsAnswered >= MAX_WORDS_PER_DAY || usage.msSpent >= MAX_MS_PER_DAY;
-}
-
-export function remainingWords(usage: DailyUsage): number {
-  return Math.max(0, MAX_WORDS_PER_DAY - usage.wordsAnswered);
+  return usage.msSpent >= MAX_MS_PER_DAY || usage.wordsAnswered >= WORD_SAFETY_CAP;
 }

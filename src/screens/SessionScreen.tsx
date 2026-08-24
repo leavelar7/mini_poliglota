@@ -12,7 +12,7 @@ import { colors, languageLabels, spacing, typography } from '../theme/theme';
 import { LANGUAGES, LanguageCode, TTS_LOCALE, getWord } from '../data/words';
 import { buildDailySession, ProgressMap, recordAnswer, SessionCard } from '../lib/srs';
 import { loadProgress, loadStreak, registerSessionCompletion, saveProgress, saveStreak } from '../lib/storage';
-import { addUsage, DailyUsage, isLockedOut, loadDailyUsage, remainingWords, saveDailyUsage } from '../lib/dailyLimit';
+import { addUsage, DailyUsage, isLockedOut, loadDailyUsage, MAX_MS_PER_DAY, saveDailyUsage } from '../lib/dailyLimit';
 import { pushSessionResult } from '../lib/cloudSync';
 import { pickVoice } from '../lib/ttsVoice';
 
@@ -27,10 +27,19 @@ export function SessionScreen({ navigation }: Props) {
   const [done, setDone] = useState(false);
   const [correctInSession, setCorrectInSession] = useState(0);
   const [introLang, setIntroLang] = useState<LanguageCode | null>(null);
+  const [nowTick, setNowTick] = useState(Date.now());
   const isAdvancingRef = useRef(false);
   const lastLangRef = useRef<LanguageCode | null>(null);
   const baseUsageRef = useRef<DailyUsage | null>(null);
   const sessionStartRef = useRef(Date.now());
+
+  // Drives the progress bar, which tracks the real 10-minute time budget —
+  // there are far more cards queued up than could ever fit in that time, so
+  // a card-count-based bar would be meaningless.
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -43,7 +52,7 @@ export function SessionScreen({ navigation }: Props) {
       }
       baseUsageRef.current = usage;
       const stored = await loadProgress();
-      const session = buildDailySession(stored, LANGUAGES, now, remainingWords(usage));
+      const session = buildDailySession(stored, LANGUAGES, now);
       setProgress(stored);
       setCards(session);
     })();
@@ -135,7 +144,7 @@ export function SessionScreen({ navigation }: Props) {
           <DuckMascot size={160} mood="cheer" />
           <Text style={styles.title}>Muito bem! 🎉</Text>
           <Text style={styles.subtitle}>
-            Você acertou {correctInSession} de {cards.length} palavras hoje.
+            Você acertou {correctInSession} de {index + 1} palavras hoje.
           </Text>
           <BigButton label="⬅️  Voltar" onPress={() => navigation.navigate('Home')} style={{ marginTop: spacing.xl, width: '100%' }} />
         </View>
@@ -163,10 +172,13 @@ export function SessionScreen({ navigation }: Props) {
     );
   }
 
+  const elapsedMsToday = (baseUsageRef.current?.msSpent ?? 0) + (nowTick - sessionStartRef.current);
+  const timePct = Math.min(100, Math.round((elapsedMsToday / MAX_MS_PER_DAY) * 100));
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <ProgressBar current={index + 1} total={cards.length} />
+        <ProgressBar pct={timePct} />
       </View>
 
       <View style={styles.content}>
@@ -184,8 +196,7 @@ export function SessionScreen({ navigation }: Props) {
   );
 }
 
-function ProgressBar({ current, total }: { current: number; total: number }) {
-  const pct = Math.min(100, Math.round((current / total) * 100));
+function ProgressBar({ pct }: { pct: number }) {
   return (
     <View style={styles.progressTrack}>
       <View style={[styles.progressFill, { width: `${pct}%` }]} />
