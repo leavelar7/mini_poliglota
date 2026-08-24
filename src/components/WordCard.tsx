@@ -14,15 +14,12 @@ export function WordCard({ word, lang }: Props) {
   return (
     <View style={[styles.card, { borderColor: langColor }]}>
       <View style={[styles.flagPill, { backgroundColor: langColor }]}>
-        <Text style={styles.flagText}>
-          {languageLabels[lang].flag} {languageLabels[lang].name}
-        </Text>
+        <Text style={styles.flagText}>{languageLabels[lang].flag}</Text>
       </View>
       <View style={styles.illustration}>
         <WordIllustration wordId={word.id} emojiFallback={word.emoji} size={110} />
       </View>
       <Text style={styles.word}>{word.translations[lang]}</Text>
-      <Text style={styles.pt}>({word.pt})</Text>
     </View>
   );
 }
@@ -49,8 +46,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     borderRadius: radii.pill,
   },
-  flagText: { color: '#fff', fontWeight: '800', fontSize: 14 },
+  flagText: { fontSize: 20 },
   illustration: { marginTop: spacing.md, marginBottom: spacing.md },
   word: { ...typography.word, color: colors.ink, textAlign: 'center' },
-  pt: { ...typography.caption, color: colors.inkSoft, marginTop: spacing.xs },
 });

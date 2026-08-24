@@ -1,89 +1,84 @@
 import { LanguageCode, WORD_BANK } from '../data/words';
 
-// Leitner-box spaced repetition, tracked per (word, language) pair.
-// Box 0 = never introduced. Box 1-5 = increasing review intervals.
-// A word overdue by more than its own interval is treated as "forgotten"
-// and dropped back to box 1 so it resurfaces with priority.
+// SuperMemo-2 spaced repetition, tracked per (word, language) pair, adapted
+// for binary (correct/incorrect) input per the project spec.
 
-export type WordStatus = 'new' | 'learning' | 'known' | 'forgotten';
+export type WordStatus = 'new' | 'learning' | 'known';
 
 export interface WordProgress {
-  box: number; // 0..5
-  dueAt: number; // epoch ms
+  interval: number; // days until next review
+  repetition: number; // consecutive correct answers
+  easeFactor: number; // starts at 2.5, per classic SM-2
+  nextReviewAt: number; // epoch ms
   lastSeenAt: number | null;
   correctCount: number;
   wrongCount: number;
-  forgottenCount: number;
 }
 
 export type ProgressKey = `${string}:${LanguageCode}`;
 export type ProgressMap = Record<ProgressKey, WordProgress>;
 
-const BOX_INTERVAL_DAYS = [0, 1, 3, 7, 16, 30];
 const DAY_MS = 24 * 60 * 60 * 1000;
+const KNOWN_INTERVAL_DAYS = 21;
 
 export function keyOf(wordId: string, lang: LanguageCode): ProgressKey {
   return `${wordId}:${lang}`;
 }
 
 export function emptyProgress(): WordProgress {
-  return { box: 0, dueAt: 0, lastSeenAt: null, correctCount: 0, wrongCount: 0, forgottenCount: 0 };
-}
-
-/** Applies "forgotten" demotion for anything overdue, and returns the updated map. Pure. */
-export function refreshForgotten(map: ProgressMap, now: number): ProgressMap {
-  const next: ProgressMap = { ...map };
-  for (const key of Object.keys(next) as ProgressKey[]) {
-    const p = next[key];
-    if (p.box <= 1 || !p.lastSeenAt) continue;
-    const intervalMs = BOX_INTERVAL_DAYS[p.box] * DAY_MS;
-    const overdueBy = now - (p.lastSeenAt + intervalMs);
-    if (overdueBy > intervalMs) {
-      next[key] = { ...p, box: 1, dueAt: now, forgottenCount: p.forgottenCount + 1 };
-    }
-  }
-  return next;
+  return { interval: 0, repetition: 0, easeFactor: 2.5, nextReviewAt: 0, lastSeenAt: null, correctCount: 0, wrongCount: 0 };
 }
 
 export function statusOf(p: WordProgress | undefined): WordStatus {
-  if (!p || p.box === 0) return 'new';
-  if (p.forgottenCount > 0 && p.box <= 1) return 'forgotten';
-  return p.box >= 4 ? 'known' : 'learning';
+  if (!p || p.lastSeenAt === null) return 'new';
+  return p.interval >= KNOWN_INTERVAL_DAYS ? 'known' : 'learning';
+}
+
+/** Classic SM-2 update rule, adapted for a single correct/incorrect signal. */
+function calculateNextReview(isCorrect: boolean, prev: WordProgress, now: number): WordProgress {
+  let { interval, repetition, easeFactor } = prev;
+
+  if (isCorrect) {
+    if (repetition === 0) interval = 1;
+    else if (repetition === 1) interval = 2;
+    else interval = Math.round(interval * easeFactor);
+    repetition += 1;
+    easeFactor += 0.1;
+  } else {
+    repetition = 0;
+    interval = 1;
+    easeFactor = Math.max(1.3, easeFactor - 0.2);
+  }
+
+  return {
+    interval,
+    repetition,
+    easeFactor,
+    nextReviewAt: now + interval * DAY_MS,
+    lastSeenAt: now,
+    correctCount: prev.correctCount + (isCorrect ? 1 : 0),
+    wrongCount: prev.wrongCount + (isCorrect ? 0 : 1),
+  };
 }
 
 export function recordAnswer(map: ProgressMap, wordId: string, lang: LanguageCode, correct: boolean, now: number): ProgressMap {
   const key = keyOf(wordId, lang);
   const prev = map[key] ?? emptyProgress();
-  let box = prev.box === 0 ? 1 : prev.box;
-  box = correct ? Math.min(5, box + 1) : Math.max(1, box - 1);
-  const dueAt = now + BOX_INTERVAL_DAYS[box] * DAY_MS;
-  const updated: WordProgress = {
-    box,
-    dueAt,
-    lastSeenAt: now,
-    correctCount: prev.correctCount + (correct ? 1 : 0),
-    wrongCount: prev.wrongCount + (correct ? 0 : 1),
-    forgottenCount: prev.forgottenCount,
-  };
+  const updated = calculateNextReview(correct, prev, now);
   return { ...map, [key]: updated };
 }
 
 export interface SessionCard {
   wordId: string;
   lang: LanguageCode;
-  reason: 'forgotten' | 'due' | 'new';
+  reason: 'due' | 'new';
 }
 
 /**
- * Builds today's ~30-card session, split evenly across the 4 target
- * languages, prioritizing forgotten > overdue-review > brand new words.
+ * Builds today's session, split evenly across the target languages,
+ * prioritizing overdue reviews (most overdue first) before brand-new words.
  */
-export function buildDailySession(
-  map: ProgressMap,
-  languages: LanguageCode[],
-  now: number,
-  totalCards = 30
-): SessionCard[] {
+export function buildDailySession(map: ProgressMap, languages: LanguageCode[], now: number, totalCards = 10): SessionCard[] {
   const perLanguage = Math.floor(totalCards / languages.length);
   const remainder = totalCards - perLanguage * languages.length;
 
@@ -91,23 +86,17 @@ export function buildDailySession(
 
   languages.forEach((lang, idx) => {
     const slots = perLanguage + (idx < remainder ? 1 : 0);
+    if (slots <= 0) return;
     const candidates = WORD_BANK.map((w) => ({ word: w, progress: map[keyOf(w.id, lang)] }));
 
-    const forgotten = candidates.filter((c) => statusOf(c.progress) === 'forgotten');
-    const due = candidates.filter((c) => {
-      const p = c.progress;
-      return p && p.box > 0 && statusOf(p) !== 'forgotten' && p.dueAt <= now;
-    });
+    const due = candidates.filter((c) => c.progress && c.progress.lastSeenAt !== null && c.progress.nextReviewAt <= now);
     const fresh = candidates.filter((c) => statusOf(c.progress) === 'new');
 
-    // Prioritize words that are most wrong / most overdue first.
-    forgotten.sort((a, b) => (b.progress?.wrongCount ?? 0) - (a.progress?.wrongCount ?? 0));
-    due.sort((a, b) => (a.progress?.dueAt ?? 0) - (b.progress?.dueAt ?? 0));
+    due.sort((a, b) => (a.progress?.nextReviewAt ?? 0) - (b.progress?.nextReviewAt ?? 0));
 
-    const picked = [...forgotten, ...due, ...fresh].slice(0, slots);
+    const picked = [...due, ...fresh].slice(0, slots);
     picked.forEach((c) => {
-      const reason: SessionCard['reason'] =
-        statusOf(c.progress) === 'forgotten' ? 'forgotten' : statusOf(c.progress) === 'new' ? 'new' : 'due';
+      const reason: SessionCard['reason'] = statusOf(c.progress) === 'new' ? 'new' : 'due';
       session.push({ wordId: c.word.id, lang, reason });
     });
   });

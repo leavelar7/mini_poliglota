@@ -1,43 +1,42 @@
-// "Pequeno Pato" design language — a calm, low-stimulation storybook look.
-// Every color here is deliberately desaturated (soft pastel, close values,
-// gentle contrast) so the screen stays quiet and the child's attention goes
-// to the word and its pronunciation, not to the interface. Loosely inspired
-// by the muted forest/pond mood of O Pequeno Urso (TV Cultura), toned down
-// further on purpose — this is not meant to be visually exciting.
+// "Pequeno Pato" design language, per the project spec: warm paper beige,
+// moss green as the primary/success color, light earth brown as the
+// secondary/neutral — low-stimulus, rounded, very soft shadows, no
+// confetti-style flourishes. Rewards stay subtle (a small bounce + a soft
+// chime), not a burst of visual noise.
 
 export const colors = {
-  parchment: '#F7F3EA',
-  parchmentDeep: '#EFE8DA',
-  forest: '#ACC0A4',
-  forestDeep: '#8FA687',
-  pond: '#BBD3DA',
-  pondDeep: '#9FBCC4',
-  honey: '#E3CDA0',
-  honeyDeep: '#CDB07E',
-  rust: '#D3AC9B',
-  rustDeep: '#BE9484',
-  plum: '#B4A2B9',
-  plumDeep: '#9986A0',
-  ink: '#5B4C3E',
-  inkSoft: '#8C7D6C',
-  card: '#FEFCF6',
-  cardAlt: '#F3ECDE',
-  success: '#A9BE9E',
-  successDeep: '#8AA47D',
-  warn: '#D3AC9B',
-  shadow: 'rgba(91, 76, 62, 0.14)',
+  parchment: '#F4F1EA',
+  parchmentDeep: '#EBE6D8',
+  forest: '#8A9A5B',
+  forestDeep: '#6F7D4C',
+  honey: '#E0B589',
+  honeyDeep: '#C99A68',
+  rust: '#C99C87',
+  rustDeep: '#B08268',
+  plum: '#A896A0',
+  plumDeep: '#8C7A85',
+  pond: '#AEC3CE',
+  pondDeep: '#8FAAB8',
+  ink: '#4A4030',
+  inkSoft: '#7A6F5C',
+  card: '#FFFDF8',
+  cardAlt: '#EFE8D8',
+  success: '#8A9A5B',
+  successDeep: '#6F7D4C',
+  warn: '#C99C87',
+  shadow: 'rgba(74, 64, 48, 0.12)',
 } as const;
 
 export const languageColors: Record<string, string> = {
-  en: '#A6BDC6',
-  es: '#D3AC9B',
-  it: '#ACC0A4',
-  de: '#DCC79E',
+  en: '#8A9A5B',
+  fr: '#8FAAC4',
+  it: '#C99C87',
+  de: '#D9C27E',
 };
 
 export const languageLabels: Record<string, { name: string; flag: string }> = {
   en: { name: 'Inglês', flag: '🇺🇸' },
-  es: { name: 'Espanhol', flag: '🇪🇸' },
+  fr: { name: 'Francês', flag: '🇫🇷' },
   it: { name: 'Italiano', flag: '🇮🇹' },
   de: { name: 'Alemão', flag: '🇩🇪' },
 };

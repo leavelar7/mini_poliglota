@@ -1,8 +1,10 @@
 # Mini Poliglota
 
-App infantil (Android, Expo/React Native) para ensinar palavras em inglês, espanhol,
+App infantil (Android, Expo/React Native) para ensinar palavras em inglês, francês,
 italiano e alemão a uma criança de 5 anos em fase de alfabetização. Mascote: um pato,
-no estilo pastel de "O Pequeno Urso" (TV Cultura).
+no estilo pastel de "O Pequeno Urso" (TV Cultura). Sessão diária com trava rígida de
+10 minutos (ou 10 palavras) por dia, interface quase sem texto — só a palavra-alvo
+escrita fica visível, o resto é ícone/áudio/cor.
 
 ## Como rodar
 
@@ -23,13 +25,21 @@ npx expo run:android     # build de desenvolvimento no Android — necessário p
   organizado por tema (animais, casa, comida, corpo, verbos, adjetivos, etc). Substantivos em
   alemão sempre carregam o artigo (`der`/`die`/`das`) — a criança aprende a palavra já com o
   gênero certo. Só as 41 palavras "core" têm ilustração própria; o resto usa emoji automático.
-- `src/lib/srs.ts` — algoritmo de repetição espaçada (caixas de Leitner) que decide quais
-  palavras aparecem: novas, em revisão (`due`) ou esquecidas (`forgotten`, prioridade máxima).
+- `src/lib/srs.ts` — repetição espaçada **SuperMemo-2** (`interval`/`repetition`/`easeFactor`),
+  adaptada para acerto/erro binário: acerto aumenta o intervalo (multiplicando pelo ease
+  factor), erro zera a repetição e volta pra revisão amanhã. Decide quais palavras aparecem:
+  em revisão (`due`, vencidas primeiro) ou novas.
+- `src/lib/dailyLimit.ts` — trava diária rígida: 10 palavras **ou** 10 minutos, o que vier
+  primeiro. Persistido em AsyncStorage por dia (`YYYY-MM-DD`); ao bater o limite, a Home mostra
+  o pato dormindo em vez do botão "Começar" (sem saída visível pra criança).
 - `src/lib/storage.ts` — persistência local (AsyncStorage) do progresso e da sequência de dias.
-- `src/screens/SessionScreen.tsx` — sessão diária: ~30 cartões divididos entre os 4 idiomas,
-  áudio via `expo-speech` (TTS nativo, sem depender de arquivos de áudio).
+- `src/screens/SessionScreen.tsx` — sessão diária: cartões divididos entre os 4 idiomas até o
+  orçamento diário restante, áudio via `expo-speech` (TTS nativo). Interface quase sem texto:
+  só a palavra-alvo escrita e a bandeira do idioma aparecem: sem legendas de instrução, sem
+  "você disse", sem contagem "idioma X de 4" — feedback é ícone (✅/🔁) e cor.
 - `src/screens/DashboardScreen.tsx` — painel para os pais: palavras dominadas/em aprendizado
-  por idioma e lista das palavras com mais erros.
+  por idioma e lista das palavras com mais erros. Acesso pela Home exige **pressionar e segurar
+  por 3 segundos** o ícone de engrenagem (opaco, canto superior direito) — não abre com um toque.
 - `src/lib/matchWord.ts` — compara o que o reconhecimento de fala ouviu com a palavra-alvo
   (distância de Levenshtein, com limiar mais rígido para palavras curtas). Suporta alvos de
   mais de uma palavra (ex.: "die Sonne"): tenta casar a frase completa e também aceita só o
@@ -68,7 +78,13 @@ npx expo run:android     # build de desenvolvimento no Android — necessário p
       removida — o painel dos pais (ícone ⚙️ no canto do Início) sempre lê os dados locais
       deste aparelho direto; a infra de sync na nuvem fica pronta pra um login futuro, mas
       hoje não é usada.
-- [ ] **M5** — Publicação: build Android (EAS), versionamento no GitHub.
+- [x] **M5** — Alinhamento com o novo documento de spec: idioma trocado de espanhol para
+      **francês** em todo o banco de 1023 palavras; SRS trocado de caixas de Leitner para
+      **SM-2** (`interval`/`repetition`/`easeFactor`); trava diária rígida de 10 palavras/10
+      minutos (`dailyLimit.ts`, tela do pato dormindo); ícone do painel dos pais agora exige
+      long press de 3s em vez de toque; interface de sessão simplificada para quase-sem-texto
+      (só a palavra-alvo escrita permanece, por pedido explícito).
+- [ ] **M6** — Publicação: build Android (EAS), versionamento no GitHub.
 - [x] **Preview web** — https://mini-poliglota.vercel.app (deploy manual via Vercel; mostra o
       design e o fluxo, mas sem microfone — reconhecimento de fala é nativo e não roda em
       navegador). ⚠️ Sem o GitHub linkado (ver nota abaixo), cada deploy é manual e trabalhoso
@@ -98,7 +114,7 @@ são feitos manualmente. Quando conectar:
 
 ## Notas técnicas
 
-- TTS usa os idiomas `en-US`, `es-ES`, `it-IT`, `de-DE` via `expo-speech` — funciona sem
+- TTS usa os idiomas `en-US`, `fr-FR`, `it-IT`, `de-DE` via `expo-speech` — funciona sem
   assets de áudio, mas pode ser trocado por locuções gravadas depois.
 - As "figuras" das palavras são emojis por enquanto (zero dependência de assets); trocar por
   ilustrações no estilo do mascote é o foco do M3.
@@ -111,9 +127,29 @@ são feitos manualmente. Quando conectar:
 - Vozes de TTS: a seleção explícita de voz nativa (`ttsVoice.ts`) depende do aparelho ter a
   voz daquele idioma instalada. Em alguns Android sem os pacotes de idioma baixados, ainda vai
   cair na voz padrão — vale conferir em `Configurações → Idioma e voz de saída → Google
-  Text-to-Speech` se en-US/es-ES/it-IT/de-DE estão instalados.
-- **Banco de 1023 palavras**: as traduções (inclusive os artigos em alemão) foram geradas por
-  mim com base no meu conhecimento dos 4 idiomas, sem dicionário/tradutor externo para
-  verificação automática. Para vocabulário comum a confiança é alta, mas recomendo uma
-  revisão por um falante nativo (principalmente do alemão, pelo peso pedagógico do
-  `der`/`die`/`das`) antes de confiar 100% nisso para uso diário.
+  Text-to-Speech` se en-US/fr-FR/it-IT/de-DE estão instalados.
+- **Banco de 1023 palavras**: as traduções (inclusive os artigos em alemão e o francês, trocado
+  do espanhol nesta rodada) foram geradas por mim com base no meu conhecimento dos 4 idiomas,
+  sem dicionário/tradutor externo para verificação automática. Para vocabulário comum a
+  confiança é alta, mas recomendo uma revisão por um falante nativo (principalmente do alemão,
+  pelo peso pedagógico do `der`/`die`/`das`) antes de confiar 100% nisso para uso diário.
+
+## Desvios propositais do documento de spec
+
+O documento novo (`Projeto Mini Poliglota markdown.md`) foi seguido à risca, exceto nestes
+pontos — mantidos de propósito, por já estarem implementados e serem tecnicamente superiores
+para este caso de uso:
+
+- **STT**: mantido `expo-speech-recognition` em vez de `@react-native-voice/voice` sugerido no
+  doc — é mais moderno, ativamente mantido, e tem polyfill web (permite testar no preview do
+  navegador, o que `@react-native-voice/voice` não oferece).
+- **Correspondência de pronúncia**: mantido `matchWord.ts` (distância de Levenshtein com janela
+  deslizante, suporta alvos de mais de uma palavra como `"die Sonne"`) em vez do
+  `stringSimilarity.ts` mais simples do doc (substring + 60% de tolerância) — o atual já lida
+  com os artigos alemães, que o do doc não cobre.
+- **Schema do Supabase**: as tabelas continuam `children`/`word_progress`/`sessions`
+  (`supabase/migrations/0001_init.sql`) em vez de `words`/`progress`/`review_logs` do doc — como
+  a tela de login foi removida (pedido de uma rodada de feedback anterior) e o painel dos pais
+  lê tudo localmente, essa camada de nuvem está dormente hoje; renomear as tabelas não muda o
+  comportamento do app agora. Posso migrar se algum dia a sincronização em nuvem voltar a ser
+  usada de fato.

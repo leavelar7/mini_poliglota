@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { SafeAreaView, StyleSheet, Text, View, Pressable } from 'react-native';
 import * as Speech from 'expo-speech';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -10,8 +10,9 @@ import { SpeechAnswer } from '../components/SpeechAnswer';
 import { NatureBackdrop } from '../components/NatureBackdrop';
 import { colors, languageLabels, spacing, typography } from '../theme/theme';
 import { LANGUAGES, LanguageCode, TTS_LOCALE, getWord } from '../data/words';
-import { buildDailySession, ProgressMap, recordAnswer, refreshForgotten, SessionCard } from '../lib/srs';
+import { buildDailySession, ProgressMap, recordAnswer, SessionCard } from '../lib/srs';
 import { loadProgress, loadStreak, registerSessionCompletion, saveProgress, saveStreak } from '../lib/storage';
+import { addUsage, DailyUsage, isLockedOut, loadDailyUsage, remainingWords, saveDailyUsage } from '../lib/dailyLimit';
 import { pushSessionResult } from '../lib/cloudSync';
 import { pickVoice } from '../lib/ttsVoice';
 
@@ -28,19 +29,28 @@ export function SessionScreen({ navigation }: Props) {
   const [introLang, setIntroLang] = useState<LanguageCode | null>(null);
   const isAdvancingRef = useRef(false);
   const lastLangRef = useRef<LanguageCode | null>(null);
+  const baseUsageRef = useRef<DailyUsage | null>(null);
+  const sessionStartRef = useRef(Date.now());
 
   useEffect(() => {
     (async () => {
       const now = Date.now();
-      const stored = refreshForgotten(await loadProgress(), now);
-      const session = buildDailySession(stored, LANGUAGES, now, 30);
+      sessionStartRef.current = now;
+      const usage = await loadDailyUsage(now);
+      if (isLockedOut(usage)) {
+        navigation.replace('Home');
+        return;
+      }
+      baseUsageRef.current = usage;
+      const stored = await loadProgress();
+      const session = buildDailySession(stored, LANGUAGES, now, remainingWords(usage));
       setProgress(stored);
       setCards(session);
     })();
     return () => {
       Speech.stop();
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const current = cards[index];
   const currentWord = current ? getWord(current.wordId) : undefined;
@@ -53,7 +63,7 @@ export function SessionScreen({ navigation }: Props) {
   }, [current, currentWord]);
 
   // Every time the language block changes (including the very first card),
-  // pause on a full flag/name intro before playing audio — makes the accent
+  // pause on a full flag intro before playing audio — makes the accent
   // switch unmistakable instead of just a small pill on the card.
   useEffect(() => {
     isAdvancingRef.current = false;
@@ -71,38 +81,45 @@ export function SessionScreen({ navigation }: Props) {
     speak();
   }, [index]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const finishSession = useCallback(async (finalProgress: ProgressMap, finalCorrect: number, totalCount: number) => {
-    await saveProgress(finalProgress);
-    const streak = await loadStreak();
-    await saveStreak(registerSessionCompletion(streak, Date.now()));
-    setDone(true);
-    // Best-effort: the local save above is the source of truth, so a flaky
-    // connection or a signed-out parent should never block finishing a session.
-    pushSessionResult(finalProgress, finalCorrect, totalCount).catch(() => {});
-  }, []);
+  const finishSession = useCallback(
+    async (finalProgress: ProgressMap, finalCorrect: number, wordsThisSession: number, msThisSession: number) => {
+      await saveProgress(finalProgress);
+      const streak = await loadStreak();
+      await saveStreak(registerSessionCompletion(streak, Date.now()));
+      const base = baseUsageRef.current ?? (await loadDailyUsage(Date.now()));
+      await saveDailyUsage(addUsage(base, wordsThisSession, msThisSession));
+      setDone(true);
+      // Best-effort: the local save above is the source of truth, so a flaky
+      // connection or a signed-out parent should never block finishing a session.
+      pushSessionResult(finalProgress, finalCorrect, wordsThisSession).catch(() => {});
+    },
+    []
+  );
 
   const answer = useCallback(
     (correct: boolean) => {
       // Guards against a double-fire before the next card renders.
       if (!progress || !current || isAdvancingRef.current) return;
       isAdvancingRef.current = true;
-      const next = recordAnswer(progress, current.wordId, current.lang, correct, Date.now());
+      const now = Date.now();
+      const next = recordAnswer(progress, current.wordId, current.lang, correct, now);
       setProgress(next);
       const finalCorrect = correctInSession + (correct ? 1 : 0);
       if (correct) setCorrectInSession(finalCorrect);
-      if (index + 1 >= cards.length) {
-        finishSession(next, finalCorrect, cards.length);
+
+      const wordsThisSession = index + 1;
+      const msThisSession = now - sessionStartRef.current;
+      const base = baseUsageRef.current;
+      const capReached = base ? isLockedOut(addUsage(base, wordsThisSession, msThisSession)) : false;
+
+      if (index + 1 >= cards.length || capReached) {
+        finishSession(next, finalCorrect, wordsThisSession, msThisSession);
       } else {
         setIndex(index + 1);
       }
     },
     [progress, current, index, cards.length, correctInSession, finishSession]
   );
-
-  const langBlock = useMemo(() => {
-    if (!current) return null;
-    return LANGUAGES.indexOf(current.lang) + 1;
-  }, [current]);
 
   if (done) {
     return (
@@ -135,7 +152,6 @@ export function SessionScreen({ navigation }: Props) {
       <SafeAreaView style={styles.container}>
         <View style={styles.content}>
           <Text style={styles.introFlag}>{languageLabels[introLang].flag}</Text>
-          <Text style={styles.introName}>{languageLabels[introLang].name}</Text>
         </View>
       </SafeAreaView>
     );
@@ -145,14 +161,13 @@ export function SessionScreen({ navigation }: Props) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <ProgressBar current={index + 1} total={cards.length} />
-        <Text style={styles.blockLabel}>Idioma {langBlock} de {LANGUAGES.length}</Text>
       </View>
 
       <View style={styles.content}>
         <WordCard word={currentWord} lang={current.lang} />
 
-        <Pressable onPress={speak} style={styles.replayButton}>
-          <Text style={styles.replayText}>🔊 Ouvir de novo</Text>
+        <Pressable onPress={speak} style={styles.replayButton} hitSlop={12}>
+          <Text style={styles.replayIcon}>🔊</Text>
         </Pressable>
 
         <View style={styles.speechArea}>
@@ -177,13 +192,11 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
   progressTrack: { height: 10, borderRadius: 999, backgroundColor: '#ffffffaa', overflow: 'hidden' },
   progressFill: { height: '100%', backgroundColor: colors.honey, borderRadius: 999 },
-  blockLabel: { ...typography.caption, color: colors.inkSoft, marginTop: spacing.xs, textAlign: 'center' },
   content: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   title: { ...typography.display, color: colors.ink, marginTop: spacing.md, textAlign: 'center' },
   subtitle: { ...typography.body, color: colors.inkSoft, marginTop: spacing.sm, textAlign: 'center' },
-  replayButton: { marginTop: spacing.lg, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
-  replayText: { ...typography.body, color: colors.plum },
+  replayButton: { marginTop: spacing.lg, padding: spacing.sm },
+  replayIcon: { fontSize: 32 },
   speechArea: { width: '100%', marginTop: spacing.md },
-  introFlag: { fontSize: 96 },
-  introName: { ...typography.display, color: colors.ink, marginTop: spacing.md },
+  introFlag: { fontSize: 120 },
 });

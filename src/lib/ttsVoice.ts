@@ -16,10 +16,10 @@ function loadVoices(): Promise<Speech.Voice[]> {
 }
 
 // Preferred country variant per language, so playback sounds like a native
-// speaker of that specific accent (e.g. Spain Spanish, not Mexican Spanish).
+// speaker of that specific accent (e.g. France French, not Québécois).
 const PREFERRED_LOCALE: Record<LanguageCode, string> = {
   en: 'en-us',
-  es: 'es-es',
+  fr: 'fr-fr',
   it: 'it-it',
   de: 'de-de',
 };
@@ -31,7 +31,7 @@ export async function pickVoice(lang: LanguageCode): Promise<string | undefined>
 
   const voices = await loadVoices();
   const preferred = PREFERRED_LOCALE[lang];
-  const prefix = lang; // 'en' | 'es' | 'it' | 'de'
+  const prefix = lang; // 'en' | 'fr' | 'it' | 'de'
 
   const exact = voices.find((v) => v.language?.toLowerCase() === preferred);
   const sameLanguage = voices.find((v) => v.language?.toLowerCase().startsWith(prefix));

@@ -4,7 +4,7 @@ import { colors } from '../theme/theme';
 
 interface Props {
   size?: number;
-  mood?: 'happy' | 'cheer' | 'wink';
+  mood?: 'happy' | 'cheer' | 'wink' | 'sleep';
 }
 
 // A friendly duck mascot with a hand-inked, painterly storybook feel —
@@ -26,12 +26,21 @@ export function DuckMascot({ size = 140, mood = 'happy' }: Props) {
       {/* beak */}
       <Path d="M60 66 Q30 62 58 82 Q62 78 68 72 Z" fill={colors.rust} {...outline} />
       {/* eyes */}
-      <Circle cx="88" cy="55" r="6" fill={colors.ink} />
-      <Circle cx="120" cy="55" r="6" fill={colors.ink} />
-      {mood === 'wink' ? null : (
+      {mood === 'sleep' ? (
         <>
-          <Circle cx="90" cy="53" r="2" fill="#fff" />
-          <Circle cx="122" cy="53" r="2" fill="#fff" />
+          <Path d="M80 55 Q88 48 96 55" stroke={colors.ink} strokeWidth={3} fill="none" strokeLinecap="round" />
+          <Path d="M112 55 Q120 48 128 55" stroke={colors.ink} strokeWidth={3} fill="none" strokeLinecap="round" />
+        </>
+      ) : (
+        <>
+          <Circle cx="88" cy="55" r="6" fill={colors.ink} />
+          <Circle cx="120" cy="55" r="6" fill={colors.ink} />
+          {mood === 'wink' ? null : (
+            <>
+              <Circle cx="90" cy="53" r="2" fill="#fff" />
+              <Circle cx="122" cy="53" r="2" fill="#fff" />
+            </>
+          )}
         </>
       )}
       {/* cheeks */}

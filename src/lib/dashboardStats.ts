@@ -3,10 +3,10 @@ import { LANGUAGES, LanguageCode } from '../data/words';
 export interface ProgressEntry {
   wordId: string;
   lang: LanguageCode;
-  box: number;
+  interval: number;
+  lastSeenAt: number | null;
   correctCount: number;
   wrongCount: number;
-  forgottenCount: number;
 }
 
 export interface LanguageStat {
@@ -24,20 +24,18 @@ export interface WeakWord {
   accuracy: number;
 }
 
-function entryStatus(e: ProgressEntry): 'new' | 'learning' | 'known' | 'forgotten' {
-  if (e.box === 0) return 'new';
-  if (e.forgottenCount > 0 && e.box <= 1) return 'forgotten';
-  return e.box >= 4 ? 'known' : 'learning';
+const KNOWN_INTERVAL_DAYS = 21;
+
+function entryStatus(e: ProgressEntry): 'new' | 'learning' | 'known' {
+  if (e.lastSeenAt === null) return 'new';
+  return e.interval >= KNOWN_INTERVAL_DAYS ? 'known' : 'learning';
 }
 
 export function computeLanguageStats(entries: ProgressEntry[]): LanguageStat[] {
   return LANGUAGES.map((lang) => {
     const forLang = entries.filter((e) => e.lang === lang);
     const known = forLang.filter((e) => entryStatus(e) === 'known').length;
-    const learning = forLang.filter((e) => {
-      const s = entryStatus(e);
-      return s === 'learning' || s === 'forgotten';
-    }).length;
+    const learning = forLang.filter((e) => entryStatus(e) === 'learning').length;
     return { lang, known, learning, introduced: forLang.length };
   });
 }

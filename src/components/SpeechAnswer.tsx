@@ -13,12 +13,13 @@ interface Props {
 }
 
 // Lets the child speak the word into the mic, scores the transcript against
-// the target with `scorePronunciation`, shows a brief verdict, then reports
-// back via onResult. This is the only way to answer — if permission is
-// denied, a retry button re-prompts (in case they granted it in Settings).
+// the target with `scorePronunciation`, shows a brief icon-only verdict,
+// then reports back via onResult. This is the only way to answer — if
+// permission is denied, a retry button re-prompts (in case they granted it
+// in Settings). Permission/unavailable text stays since those are rare,
+// parent-facing edge cases outside the near-textless child loop.
 export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
   const [phase, setPhase] = useState<Phase>('idle');
-  const [heard, setHeard] = useState('');
   const [verdict, setVerdict] = useState<boolean | null>(null);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -31,7 +32,6 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
   }, []);
 
   useEffect(() => {
-    setHeard('');
     setVerdict(null);
     if (settleTimer.current) clearTimeout(settleTimer.current);
     setPhase((p) => (p === 'unavailable' ? p : 'idle'));
@@ -39,7 +39,6 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
 
   useSpeechRecognitionEvent('result', (event) => {
     const transcript = event.results[0]?.transcript ?? '';
-    setHeard(transcript);
     if (event.isFinal && transcript) {
       const match = scorePronunciation(transcript, targetWord);
       setVerdict(match.correct);
@@ -62,7 +61,6 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
       setPhase('denied');
       return;
     }
-    setHeard('');
     setVerdict(null);
     setPhase('listening');
     ExpoSpeechRecognitionModule.start({
@@ -92,10 +90,7 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
   if (phase === 'result' && verdict !== null) {
     return (
       <View style={styles.resultBox}>
-        <Text style={styles.heard}>Você disse: “{heard}”</Text>
-        <Text style={[styles.verdict, { color: verdict ? colors.successDeep : colors.warn }]}>
-          {verdict ? '✅ Muito bem!' : '🔁 Quase lá, vamos tentar de novo!'}
-        </Text>
+        <Text style={[styles.verdictIcon, { color: verdict ? colors.successDeep : colors.warn }]}>{verdict ? '✅' : '🔁'}</Text>
       </View>
     );
   }
@@ -107,8 +102,6 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
       style={({ pressed }) => [styles.micButton, phase === 'listening' && styles.micListening, { opacity: pressed ? 0.85 : 1 }]}
     >
       <Text style={styles.micIcon}>{phase === 'listening' ? '🔴' : '🎤'}</Text>
-      <Text style={styles.micLabel}>{phase === 'listening' ? 'Ouvindo... diga a palavra!' : 'Toque e fale a palavra'}</Text>
-      {phase === 'listening' && heard ? <Text style={styles.interim}>“{heard}”</Text> : null}
     </Pressable>
   );
 }
@@ -126,9 +119,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   micListening: { borderStyle: 'solid', backgroundColor: colors.cardAlt },
-  micIcon: { fontSize: 40, marginBottom: spacing.xs },
-  micLabel: { ...typography.body, color: colors.ink, textAlign: 'center' },
-  interim: { ...typography.caption, color: colors.inkSoft, marginTop: spacing.xs },
+  micIcon: { fontSize: 40 },
   resultBox: {
     backgroundColor: colors.card,
     borderRadius: radii.lg,
@@ -136,8 +127,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  heard: { ...typography.caption, color: colors.inkSoft },
-  verdict: { ...typography.title, marginTop: spacing.xs, textAlign: 'center' },
+  verdictIcon: { fontSize: 48 },
   hint: { ...typography.caption, color: colors.inkSoft, textAlign: 'center', width: '100%' },
   retryButton: { marginTop: spacing.md, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
   retryText: { ...typography.body, color: colors.plum },

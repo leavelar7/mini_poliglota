@@ -25,10 +25,10 @@ export function DashboardScreen({ navigation }: Props) {
         return {
           wordId,
           lang: lang as ProgressEntry['lang'],
-          box: p.box,
+          interval: p.interval,
+          lastSeenAt: p.lastSeenAt,
           correctCount: p.correctCount,
           wrongCount: p.wrongCount,
-          forgottenCount: p.forgottenCount,
         };
       });
       setEntries(localEntries);
