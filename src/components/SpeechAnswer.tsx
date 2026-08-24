@@ -13,6 +13,7 @@ interface Props {
 }
 
 const LISTEN_TIMEOUT_MS = 8000;
+const MAX_NO_SPEECH_RETRIES = 2;
 
 // Lets the child speak the word into the mic, scores the transcript against
 // the target with `scorePronunciation`, shows a brief icon-only verdict,
@@ -27,6 +28,7 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
   const [lastError, setLastError] = useState<string | null>(null);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const listenTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const noSpeechRetries = useRef(0);
 
   const clearListenTimer = () => {
     if (listenTimer.current) {
@@ -46,6 +48,7 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
 
   useEffect(() => {
     setVerdict(null);
+    noSpeechRetries.current = 0;
     if (settleTimer.current) clearTimeout(settleTimer.current);
     clearListenTimer();
     setPhase((p) => (p === 'unavailable' ? p : 'idle'));
@@ -71,10 +74,19 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
   useSpeechRecognitionEvent('error', (event) => {
     clearListenTimer();
     setLastError(`${event.error}: ${event.message ?? ''}`);
+    // Very short single-syllable targets (e.g. French "eau") sometimes don't
+    // register as speech at all on Android's recognizer — a known limitation,
+    // not a mic problem. Auto-retry a couple of times before making the
+    // child tap the mic again themselves.
+    if (event.error === 'no-speech' && noSpeechRetries.current < MAX_NO_SPEECH_RETRIES) {
+      noSpeechRetries.current += 1;
+      beginListening();
+      return;
+    }
     setPhase(event.error === 'not-allowed' || event.error === 'service-not-allowed' ? 'denied' : 'idle');
   });
 
-  const startListening = useCallback(async () => {
+  const beginListening = useCallback(async () => {
     const perm = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
     if (!perm.granted) {
       setPhase('denied');
@@ -100,6 +112,11 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
       setPhase((p) => (p === 'listening' ? 'idle' : p));
     }, LISTEN_TIMEOUT_MS);
   }, [locale]);
+
+  const startListening = useCallback(() => {
+    noSpeechRetries.current = 0;
+    beginListening();
+  }, [beginListening]);
 
   if (phase === 'unavailable') {
     return <Text style={styles.hint}>🎤 Reconhecimento de fala indisponível neste aparelho.</Text>;
