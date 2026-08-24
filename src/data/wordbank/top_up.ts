@@ -1,0 +1,50 @@
+import { WordEntry } from '../words';
+
+// A final top-up batch to comfortably clear 1000+ words per language.
+export const TOP_UP: WordEntry[] = [
+  { id: 'gorilla2_lion_cub', category: 'animais', emoji: '🦁', pt: 'filhote de leão', translations: { en: 'lion cub', es: 'cachorro de león', it: 'cucciolo di leone', de: 'das Löwenjunge' } },
+  { id: 'octopus_tentacle', category: 'animais', emoji: '🐙', pt: 'polvo (tentáculo)', translations: { en: 'tentacle', es: 'tentáculo', it: 'tentacolo', de: 'der Tentakel' } },
+  { id: 'antler', category: 'animais', emoji: '🦌', pt: 'chifre (cervo)', translations: { en: 'antler', es: 'cornamenta', it: 'corno', de: 'das Geweih' } },
+  { id: 'paw', category: 'animais', emoji: '🐾', pt: 'pata', translations: { en: 'paw', es: 'pata', it: 'zampa', de: 'die Pfote' } },
+  { id: 'tail', category: 'animais', emoji: '🐕', pt: 'rabo', translations: { en: 'tail', es: 'cola', it: 'coda', de: 'der Schwanz' } },
+  { id: 'fur', category: 'animais', emoji: '🐻', pt: 'pelo (animal)', translations: { en: 'fur', es: 'pelaje', it: 'pelliccia', de: 'das Fell' } },
+  { id: 'shell', category: 'animais', emoji: '🐚', pt: 'concha', translations: { en: 'shell', es: 'concha', it: 'conchiglia', de: 'die Muschel' } },
+  { id: 'beak', category: 'animais', emoji: '🐦', pt: 'bico', translations: { en: 'beak', es: 'pico', it: 'becco', de: 'der Schnabel' } },
+  { id: 'wing', category: 'animais', emoji: '🦅', pt: 'asa', translations: { en: 'wing', es: 'ala', it: 'ala', de: 'der Flügel' } },
+  { id: 'fin', category: 'animais', emoji: '🐟', pt: 'nadadeira', translations: { en: 'fin', es: 'aleta', it: 'pinna', de: 'die Flosse' } },
+
+  { id: 'clover_luck', category: 'palavras', emoji: '🍀', pt: 'sorte', translations: { en: 'luck', es: 'suerte', it: 'fortuna', de: 'das Glück' } },
+  { id: 'peace', category: 'palavras', emoji: '☮️', pt: 'paz', translations: { en: 'peace', es: 'paz', it: 'pace', de: 'der Frieden' } },
+  { id: 'freedom', category: 'palavras', emoji: '🕊️', pt: 'liberdade', translations: { en: 'freedom', es: 'libertad', it: 'libertà', de: 'die Freiheit' } },
+  { id: 'silence', category: 'palavras', emoji: '🤫', pt: 'silêncio', translations: { en: 'silence', es: 'silencio', it: 'silenzio', de: 'die Stille' } },
+  { id: 'noise', category: 'palavras', emoji: '📢', pt: 'barulho', translations: { en: 'noise', es: 'ruido', it: 'rumore', de: 'der Lärm' } },
+  { id: 'light_word', category: 'palavras', emoji: '💡', pt: 'luz', translations: { en: 'light', es: 'luz', it: 'luce', de: 'das Licht' } },
+  { id: 'darkness', category: 'palavras', emoji: '🌑', pt: 'escuridão', translations: { en: 'darkness', es: 'oscuridad', it: 'oscurità', de: 'die Dunkelheit' } },
+  { id: 'sound', category: 'palavras', emoji: '🔊', pt: 'som', translations: { en: 'sound', es: 'sonido', it: 'suono', de: 'der Klang' } },
+  { id: 'voice', category: 'palavras', emoji: '🗣️', pt: 'voz', translations: { en: 'voice', es: 'voz', it: 'voce', de: 'die Stimme' } },
+  { id: 'smell_noun', category: 'palavras', emoji: '👃', pt: 'cheiro', translations: { en: 'smell', es: 'olor', it: 'odore', de: 'der Geruch' } },
+
+  { id: 'week', category: 'tempo', emoji: '📅', pt: 'semana', translations: { en: 'week', es: 'semana', it: 'settimana', de: 'die Woche' } },
+  { id: 'month', category: 'tempo', emoji: '🗓️', pt: 'mês', translations: { en: 'month', es: 'mes', it: 'mese', de: 'der Monat' } },
+  { id: 'year', category: 'tempo', emoji: '🗓️', pt: 'ano', translations: { en: 'year', es: 'año', it: 'anno', de: 'das Jahr' } },
+  { id: 'hour', category: 'tempo', emoji: '⏰', pt: 'hora', translations: { en: 'hour', es: 'hora', it: 'ora', de: 'die Stunde' } },
+  { id: 'minute', category: 'tempo', emoji: '⏱️', pt: 'minuto', translations: { en: 'minute', es: 'minuto', it: 'minuto', de: 'die Minute' } },
+  { id: 'second_time', category: 'tempo', emoji: '⏱️', pt: 'segundo (tempo)', translations: { en: 'second', es: 'segundo', it: 'secondo', de: 'die Sekunde' } },
+  { id: 'noon', category: 'tempo', emoji: '☀️', pt: 'meio-dia', translations: { en: 'noon', es: 'mediodía', it: 'mezzogiorno', de: 'der Mittag' } },
+  { id: 'midnight', category: 'tempo', emoji: '🌙', pt: 'meia-noite', translations: { en: 'midnight', es: 'medianoche', it: 'mezzanotte', de: 'die Mitternacht' } },
+  { id: 'dawn', category: 'tempo', emoji: '🌅', pt: 'amanhecer', translations: { en: 'dawn', es: 'amanecer', it: 'alba', de: 'die Morgendämmerung' } },
+  { id: 'dusk', category: 'tempo', emoji: '🌆', pt: 'entardecer', translations: { en: 'dusk', es: 'anochecer', it: 'crepuscolo', de: 'die Abenddämmerung' } },
+
+  { id: 'passport', category: 'lugares', emoji: '🛂', pt: 'passaporte', translations: { en: 'passport', es: 'pasaporte', it: 'passaporto', de: 'der Reisepass' } },
+  { id: 'ticket', category: 'lugares', emoji: '🎫', pt: 'bilhete', translations: { en: 'ticket', es: 'boleto', it: 'biglietto', de: 'das Ticket' } },
+  { id: 'hotel', category: 'lugares', emoji: '🏨', pt: 'hotel', translations: { en: 'hotel', es: 'hotel', it: 'hotel', de: 'das Hotel' } },
+  { id: 'tent', category: 'lugares', emoji: '⛺', pt: 'barraca', translations: { en: 'tent', es: 'tienda de campaña', it: 'tenda', de: 'das Zelt' } },
+  { id: 'campfire', category: 'lugares', emoji: '🔥', pt: 'fogueira', translations: { en: 'campfire', es: 'fogata', it: 'falò', de: 'das Lagerfeuer' } },
+  { id: 'compass', category: 'lugares', emoji: '🧭', pt: 'bússola', translations: { en: 'compass', es: 'brújula', it: 'bussola', de: 'der Kompass' } },
+  { id: 'binoculars', category: 'lugares', emoji: '🔭', pt: 'binóculo', translations: { en: 'binoculars', es: 'binoculares', it: 'binocolo', de: 'das Fernglas' } },
+
+  { id: 'lucky', category: 'adjetivos', emoji: '🍀', pt: 'sortudo', translations: { en: 'lucky', es: 'afortunado', it: 'fortunato', de: 'glücklich' } },
+  { id: 'busy', category: 'adjetivos', emoji: '🏃', pt: 'ocupado', translations: { en: 'busy', es: 'ocupado', it: 'occupato', de: 'beschäftigt' } },
+  { id: 'free_time', category: 'adjetivos', emoji: '🎉', pt: 'livre', translations: { en: 'free', es: 'libre', it: 'libero', de: 'frei' } },
+  { id: 'careful', category: 'adjetivos', emoji: '⚠️', pt: 'cuidadoso', translations: { en: 'careful', es: 'cuidadoso', it: 'attento', de: 'vorsichtig' } },
+];

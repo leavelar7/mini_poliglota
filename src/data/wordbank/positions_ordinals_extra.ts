@@ -1,0 +1,42 @@
+import { WordEntry } from '../words';
+
+export const POSITIONS_ORDINALS_EXTRA: WordEntry[] = [
+  { id: 'left', category: 'posicoes', emoji: '⬅️', pt: 'esquerda', translations: { en: 'left', es: 'izquierda', it: 'sinistra', de: 'links' } },
+  { id: 'right', category: 'posicoes', emoji: '➡️', pt: 'direita', translations: { en: 'right', es: 'derecha', it: 'destra', de: 'rechts' } },
+  { id: 'front', category: 'posicoes', emoji: '⏩', pt: 'frente', translations: { en: 'front', es: 'frente', it: 'davanti', de: 'vorne' } },
+  { id: 'back_position', category: 'posicoes', emoji: '⏪', pt: 'atrás', translations: { en: 'back', es: 'atrás', it: 'dietro', de: 'hinten' } },
+  { id: 'between', category: 'posicoes', emoji: '↔️', pt: 'entre', translations: { en: 'between', es: 'entre', it: 'tra', de: 'zwischen' } },
+  { id: 'over', category: 'posicoes', emoji: '⬆️', pt: 'sobre', translations: { en: 'over', es: 'sobre', it: 'sopra', de: 'über' } },
+  { id: 'under', category: 'posicoes', emoji: '⬇️', pt: 'sob', translations: { en: 'under', es: 'debajo', it: 'sotto', de: 'unter' } },
+  { id: 'next_to', category: 'posicoes', emoji: '↔️', pt: 'ao lado', translations: { en: 'next to', es: 'al lado', it: 'accanto', de: 'neben' } },
+  { id: 'middle', category: 'posicoes', emoji: '🎯', pt: 'meio', translations: { en: 'middle', es: 'medio', it: 'mezzo', de: 'die Mitte' } },
+  { id: 'corner', category: 'posicoes', emoji: '📐', pt: 'canto', translations: { en: 'corner', es: 'esquina', it: 'angolo', de: 'die Ecke' } },
+
+  { id: 'second_ordinal', category: 'numeros', emoji: '🥈', pt: 'segundo', translations: { en: 'second', es: 'segundo', it: 'secondo', de: 'zweite' } },
+  { id: 'third_ordinal', category: 'numeros', emoji: '🥉', pt: 'terceiro', translations: { en: 'third', es: 'tercero', it: 'terzo', de: 'dritte' } },
+  { id: 'fourth_ordinal', category: 'numeros', emoji: '🔢', pt: 'quarto', translations: { en: 'fourth', es: 'cuarto', it: 'quarto', de: 'vierte' } },
+  { id: 'fifth_ordinal', category: 'numeros', emoji: '🔢', pt: 'quinto', translations: { en: 'fifth', es: 'quinto', it: 'quinto', de: 'fünfte' } },
+  { id: 'half', category: 'numeros', emoji: '➗', pt: 'metade', translations: { en: 'half', es: 'mitad', it: 'metà', de: 'die Hälfte' } },
+  { id: 'pair', category: 'numeros', emoji: '👯', pt: 'par', translations: { en: 'pair', es: 'par', it: 'paio', de: 'das Paar' } },
+  { id: 'dozen', category: 'numeros', emoji: '🥚', pt: 'dúzia', translations: { en: 'dozen', es: 'docena', it: 'dozzina', de: 'das Dutzend' } },
+
+  { id: 'headache', category: 'saude', emoji: '🤕', pt: 'dor de cabeça', translations: { en: 'headache', es: 'dolor de cabeza', it: 'mal di testa', de: 'die Kopfschmerzen' } },
+  { id: 'fever', category: 'saude', emoji: '🤒', pt: 'febre', translations: { en: 'fever', es: 'fiebre', it: 'febbre', de: 'das Fieber' } },
+  { id: 'cough', category: 'saude', emoji: '😷', pt: 'tosse', translations: { en: 'cough', es: 'tos', it: 'tosse', de: 'der Husten' } },
+  { id: 'sneeze', category: 'saude', emoji: '🤧', pt: 'espirro', translations: { en: 'sneeze', es: 'estornudo', it: 'starnuto', de: 'das Niesen' } },
+  { id: 'wound', category: 'saude', emoji: '🩹', pt: 'ferimento', translations: { en: 'wound', es: 'herida', it: 'ferita', de: 'die Wunde' } },
+  { id: 'blood', category: 'saude', emoji: '🩸', pt: 'sangue', translations: { en: 'blood', es: 'sangre', it: 'sangue', de: 'das Blut' } },
+  { id: 'bone', category: 'saude', emoji: '🦴', pt: 'osso', translations: { en: 'bone', es: 'hueso', it: 'osso', de: 'der Knochen' } },
+  { id: 'muscle', category: 'saude', emoji: '💪', pt: 'músculo', translations: { en: 'muscle', es: 'músculo', it: 'muscolo', de: 'der Muskel' } },
+  { id: 'brain', category: 'saude', emoji: '🧠', pt: 'cérebro', translations: { en: 'brain', es: 'cerebro', it: 'cervello', de: 'das Gehirn' } },
+  { id: 'lungs', category: 'saude', emoji: '🫁', pt: 'pulmões', translations: { en: 'lungs', es: 'pulmones', it: 'polmoni', de: 'die Lunge' } },
+
+  { id: 'hot_weather', category: 'clima', emoji: '🥵', pt: 'calor', translations: { en: 'heat', es: 'calor', it: 'caldo', de: 'die Hitze' } },
+  { id: 'cold_weather', category: 'clima', emoji: '🥶', pt: 'frio (clima)', translations: { en: 'cold', es: 'frío', it: 'freddo', de: 'die Kälte' } },
+  { id: 'humidity', category: 'clima', emoji: '💧', pt: 'umidade', translations: { en: 'humidity', es: 'humedad', it: 'umidità', de: 'die Feuchtigkeit' } },
+  { id: 'drought', category: 'clima', emoji: '🏜️', pt: 'seca', translations: { en: 'drought', es: 'sequía', it: 'siccità', de: 'die Dürre' } },
+  { id: 'hurricane', category: 'clima', emoji: '🌀', pt: 'furacão', translations: { en: 'hurricane', es: 'huracán', it: 'uragano', de: 'der Hurrikan' } },
+  { id: 'tornado', category: 'clima', emoji: '🌪️', pt: 'tornado', translations: { en: 'tornado', es: 'tornado', it: 'tornado', de: 'der Tornado' } },
+  { id: 'thunder', category: 'clima', emoji: '⛈️', pt: 'trovão', translations: { en: 'thunder', es: 'trueno', it: 'tuono', de: 'der Donner' } },
+  { id: 'hail', category: 'clima', emoji: '🧊', pt: 'granizo', translations: { en: 'hail', es: 'granizo', it: 'grandine', de: 'der Hagel' } },
+];

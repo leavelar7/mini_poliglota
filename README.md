@@ -19,7 +19,10 @@ npx expo run:android     # build de desenvolvimento no Android — necessário p
 
 ## Arquitetura
 
-- `src/data/words.ts` — banco de palavras (pt + traduções en/es/it/de + emoji). Fácil de expandir.
+- `src/data/words.ts` + `src/data/wordbank/*.ts` — banco de **1023 palavras** por idioma,
+  organizado por tema (animais, casa, comida, corpo, verbos, adjetivos, etc). Substantivos em
+  alemão sempre carregam o artigo (`der`/`die`/`das`) — a criança aprende a palavra já com o
+  gênero certo. Só as 41 palavras "core" têm ilustração própria; o resto usa emoji automático.
 - `src/lib/srs.ts` — algoritmo de repetição espaçada (caixas de Leitner) que decide quais
   palavras aparecem: novas, em revisão (`due`) ou esquecidas (`forgotten`, prioridade máxima).
 - `src/lib/storage.ts` — persistência local (AsyncStorage) do progresso e da sequência de dias.
@@ -28,7 +31,9 @@ npx expo run:android     # build de desenvolvimento no Android — necessário p
 - `src/screens/DashboardScreen.tsx` — painel para os pais: palavras dominadas/em aprendizado
   por idioma e lista das palavras com mais erros.
 - `src/lib/matchWord.ts` — compara o que o reconhecimento de fala ouviu com a palavra-alvo
-  (distância de Levenshtein por palavra, com limiar mais rígido para palavras curtas).
+  (distância de Levenshtein, com limiar mais rígido para palavras curtas). Suporta alvos de
+  mais de uma palavra (ex.: "die Sonne"): tenta casar a frase completa e também aceita só o
+  substantivo (criança pode "engolir" o artigo sem perder o ponto).
 - `src/components/SpeechAnswer.tsx` — grava a criança falando (`expo-speech-recognition`),
   pontua com `matchWord` e mostra o veredito; sempre com um atalho para responder manualmente
   caso o microfone falhe ou a permissão seja negada.
@@ -45,9 +50,12 @@ npx expo run:android     # build de desenvolvimento no Android — necessário p
       sempre disponível (mic indisponível/negado, ou erro de reconhecimento).
 - [x] **M3** — paleta e cenário no estilo pastel/aquarela de "O Pequeno Urso" (parchment +
       tons de floresta/lagoa, `NatureBackdrop.tsx`), mascote com contorno "desenhado à mão"
-      (`DuckMascot.tsx`), e as 41 palavras do banco agora têm ilustração própria em vez de
-      emoji (`src/illustrations/`), com fallback automático para emoji se uma palavra nova
-      for adicionada sem ilustração.
+      (`DuckMascot.tsx`), e as 41 palavras "core" têm ilustração própria em vez de emoji
+      (`src/illustrations/`). Paleta revisada para tons bem dessaturados/pastel (baixo
+      estímulo visual — o foco deve ficar na pronúncia), e o `NatureBackdrop` foi removido da
+      tela de sessão (fica só no Início e no painel dos pais).
+- [x] **Banco de palavras** — expandido de 41 para **1023 palavras por idioma**, cobrindo
+      dezenas de categorias (veja `src/data/wordbank/`). Alemão sempre com artigo correto.
 - [x] **M4** — Backend Supabase: autenticação dos pais (email/senha), schema com RLS
       (`supabase/migrations/0001_init.sql`), sincronização best-effort ao fim de cada sessão,
       dashboard lendo da nuvem com fallback automático para os dados locais.
@@ -87,3 +95,8 @@ são feitos manualmente. Quando conectar:
   sem custo por chamada), com fallback manual sempre visível. Ainda não testado num Android
   físico — vale validar a precisão com a fala real da criança e ajustar os limiares em
   `matchWord.ts` se necessário.
+- **Banco de 1023 palavras**: as traduções (inclusive os artigos em alemão) foram geradas por
+  mim com base no meu conhecimento dos 4 idiomas, sem dicionário/tradutor externo para
+  verificação automática. Para vocabulário comum a confiança é alta, mas recomendo uma
+  revisão por um falante nativo (principalmente do alemão, pelo peso pedagógico do
+  `der`/`die`/`das`) antes de confiar 100% nisso para uso diário.

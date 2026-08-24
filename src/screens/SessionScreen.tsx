@@ -115,7 +115,6 @@ export function SessionScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <NatureBackdrop />
       <View style={styles.header}>
         <ProgressBar current={index + 1} total={cards.length} />
         <Text style={styles.blockLabel}>Idioma {langBlock} de {LANGUAGES.length}</Text>
