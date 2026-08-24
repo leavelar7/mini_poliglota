@@ -19,6 +19,31 @@ npx expo run:android     # build de desenvolvimento no Android — necessário p
 > gerar um development build (`npx expo run:android`, exige Android Studio/SDK
 > instalado) ou usar o EAS Build.
 
+## Gerando um APK para testar no celular (EAS Build)
+
+Esse é o caminho recomendado se você **não** tem o Android Studio/SDK instalado
+localmente — o build roda na nuvem da Expo e você só instala o `.apk` gerado no
+celular. Passos (feitos uma vez por pessoa, precisam de login interativo, por
+isso não foram automatizados):
+
+```bash
+npx eas-cli login          # cria conta grátis na Expo ou faz login na existente
+npm run build:android      # builda um APK de teste (perfil "preview") na nuvem
+```
+
+O comando `build:android` vai perguntar (na primeira vez) se quer criar um
+projeto EAS vinculado a este app — aceite. Ao terminar (alguns minutos), ele
+mostra um link para baixar o `.apk` direto no celular (ou um QR code). Depois
+de instalado, o app funciona sozinho, sem precisar do computador conectado —
+é o jeito mais fiel de testar o reconhecimento de voz de verdade.
+
+`eas.json` já está configurado com os perfis `development` (development
+client, para iterar rápido com o Metro conectado), `preview` (APK
+standalone, recomendado para testar com a criança) e `production`. As
+variáveis do Supabase estão embutidas no `eas.json` (são só a URL e a chave
+pública/anon, não segredos) já que o build na nuvem não tem acesso ao `.env`
+local (que fica fora do Git).
+
 ## Arquitetura
 
 - `src/data/words.ts` + `src/data/wordbank/*.ts` — banco de **1023 palavras** por idioma,
