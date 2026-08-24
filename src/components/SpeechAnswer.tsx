@@ -12,6 +12,8 @@ interface Props {
   onResult: (correct: boolean) => void;
 }
 
+const LISTEN_TIMEOUT_MS = 8000;
+
 // Lets the child speak the word into the mic, scores the transcript against
 // the target with `scorePronunciation`, shows a brief icon-only verdict,
 // then reports back via onResult. This is the only way to answer — if
@@ -22,11 +24,20 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [verdict, setVerdict] = useState<boolean | null>(null);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const listenTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearListenTimer = () => {
+    if (listenTimer.current) {
+      clearTimeout(listenTimer.current);
+      listenTimer.current = null;
+    }
+  };
 
   useEffect(() => {
     setPhase(ExpoSpeechRecognitionModule.isRecognitionAvailable() ? 'idle' : 'unavailable');
     return () => {
       if (settleTimer.current) clearTimeout(settleTimer.current);
+      clearListenTimer();
       ExpoSpeechRecognitionModule.stop();
     };
   }, []);
@@ -34,12 +45,14 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
   useEffect(() => {
     setVerdict(null);
     if (settleTimer.current) clearTimeout(settleTimer.current);
+    clearListenTimer();
     setPhase((p) => (p === 'unavailable' ? p : 'idle'));
   }, [targetWord, locale]);
 
   useSpeechRecognitionEvent('result', (event) => {
     const transcript = event.results[0]?.transcript ?? '';
     if (event.isFinal && transcript) {
+      clearListenTimer();
       const match = scorePronunciation(transcript, targetWord);
       setVerdict(match.correct);
       setPhase('result');
@@ -48,10 +61,12 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
   });
 
   useSpeechRecognitionEvent('end', () => {
+    clearListenTimer();
     setPhase((p) => (p === 'listening' ? 'idle' : p));
   });
 
   useSpeechRecognitionEvent('error', (event) => {
+    clearListenTimer();
     setPhase(event.error === 'not-allowed' || event.error === 'service-not-allowed' ? 'denied' : 'idle');
   });
 
@@ -70,6 +85,14 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
       iosTaskHint: 'confirmation',
       androidIntentOptions: { EXTRA_LANGUAGE_MODEL: 'web_search' },
     });
+    // Safety net: some engines (especially the web polyfill) can silently
+    // hang without ever firing 'end' or 'error' if nothing is heard — without
+    // this the mic would stay stuck on "listening" with no way to retry.
+    clearListenTimer();
+    listenTimer.current = setTimeout(() => {
+      ExpoSpeechRecognitionModule.stop();
+      setPhase((p) => (p === 'listening' ? 'idle' : p));
+    }, LISTEN_TIMEOUT_MS);
   }, [locale]);
 
   if (phase === 'unavailable') {

@@ -33,9 +33,23 @@ function similarityOf(a: string, b: string): number {
   return 1 - distance / Math.max(a.length, b.length, 1);
 }
 
+// Short words are the hardest case: a single Levenshtein edit already eats
+// 30%+ of a 3-letter word's similarity score, and that's exactly where a
+// 5-year-old's imprecise pronunciation (and the recognizer's own imprecision
+// transcribing a quick, unstressed word like French "eau") shows up most. So
+// thresholds get MORE forgiving as words get shorter, not stricter.
 function thresholdFor(normLength: number): number {
-  return normLength <= 3 ? 0.8 : normLength <= 5 ? 0.7 : 0.6;
+  return normLength <= 3 ? 0.45 : normLength <= 5 ? 0.55 : 0.65;
 }
+
+// A handful of words are spelled nothing like they sound — classic case:
+// French "eau" (water) is pronounced /o/ but has no literal "o" in it, so a
+// recognizer that mishears the sound and spells it plainly ("o", "oh") can
+// never match on text similarity alone, no matter how lenient the threshold
+// is. Keyed by the target's last word (lowercased, no accents/spaces).
+const PHONETIC_ALIASES: Record<string, string[]> = {
+  eau: ['o', 'au', 'oh', 'haut'],
+};
 
 export interface MatchResult {
   correct: boolean;
@@ -81,6 +95,16 @@ export function scorePronunciation(transcript: string, target: string): MatchRes
     for (const word of heardWords) {
       const similarity = similarityOf(word, nounOnly);
       if (similarity > best.similarity) best = { similarity, phrase: word, compareLength: nounOnly.length };
+    }
+  }
+
+  const aliases = PHONETIC_ALIASES[targetWords[targetWords.length - 1]];
+  if (aliases) {
+    for (const alias of aliases) {
+      for (const word of heardWords) {
+        const similarity = similarityOf(word, alias);
+        if (similarity > best.similarity) best = { similarity, phrase: word, compareLength: alias.length };
+      }
     }
   }
 
