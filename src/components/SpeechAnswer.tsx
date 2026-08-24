@@ -14,8 +14,8 @@ interface Props {
 
 // Lets the child speak the word into the mic, scores the transcript against
 // the target with `scorePronunciation`, shows a brief verdict, then reports
-// back via onResult. A manual fallback (SessionScreen's two big buttons)
-// always stays available underneath for when recognition errors out.
+// back via onResult. This is the only way to answer — if permission is
+// denied, a retry button re-prompts (in case they granted it in Settings).
 export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [heard, setHeard] = useState('');
@@ -75,11 +75,18 @@ export function SpeechAnswer({ targetWord, locale, onResult }: Props) {
   }, [locale]);
 
   if (phase === 'unavailable') {
-    return <Text style={styles.hint}>🎤 Reconhecimento de fala indisponível neste aparelho — use os botões abaixo.</Text>;
+    return <Text style={styles.hint}>🎤 Reconhecimento de fala indisponível neste aparelho.</Text>;
   }
 
   if (phase === 'denied') {
-    return <Text style={styles.hint}>🎤 Permissão de microfone negada — use os botões abaixo.</Text>;
+    return (
+      <View style={styles.resultBox}>
+        <Text style={styles.hint}>🎤 Permissão de microfone negada.</Text>
+        <Pressable onPress={startListening} style={styles.retryButton}>
+          <Text style={styles.retryText}>Tentar novamente</Text>
+        </Pressable>
+      </View>
+    );
   }
 
   if (phase === 'result' && verdict !== null) {
@@ -132,4 +139,6 @@ const styles = StyleSheet.create({
   heard: { ...typography.caption, color: colors.inkSoft },
   verdict: { ...typography.title, marginTop: spacing.xs, textAlign: 'center' },
   hint: { ...typography.caption, color: colors.inkSoft, textAlign: 'center', width: '100%' },
+  retryButton: { marginTop: spacing.md, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
+  retryText: { ...typography.body, color: colors.plum },
 });

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/RootNavigator';
 import { DuckMascot } from '../components/DuckMascot';
@@ -20,6 +20,11 @@ export function HomeScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       <NatureBackdrop />
+
+      <Pressable onPress={() => navigation.navigate('Dashboard')} style={styles.settingsButton} hitSlop={12}>
+        <Text style={styles.settingsIcon}>⚙️</Text>
+      </Pressable>
+
       <View style={styles.content}>
         <DuckMascot size={180} />
         <Text style={styles.title}>Mini Poliglota</Text>
@@ -32,12 +37,6 @@ export function HomeScreen({ navigation }: Props) {
         )}
 
         <BigButton label="▶️  Começar" onPress={() => navigation.navigate('Session')} style={{ marginTop: spacing.xl, width: '100%' }} />
-        <BigButton
-          label="👨‍👩‍👧 Área dos pais"
-          onPress={() => navigation.navigate('Dashboard')}
-          color={colors.plum}
-          style={{ marginTop: spacing.md, width: '100%' }}
-        />
       </View>
     </SafeAreaView>
   );
@@ -45,6 +44,14 @@ export function HomeScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.parchment },
+  settingsButton: {
+    position: 'absolute',
+    top: spacing.lg,
+    right: spacing.lg,
+    zIndex: 1,
+    padding: spacing.xs,
+  },
+  settingsIcon: { fontSize: 28 },
   content: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   title: { ...typography.display, color: colors.ink, marginTop: spacing.md },
   subtitle: { ...typography.body, color: colors.inkSoft, marginTop: spacing.sm, textAlign: 'center' },

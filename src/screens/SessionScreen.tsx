@@ -8,13 +8,16 @@ import { BigButton } from '../components/BigButton';
 import { DuckMascot } from '../components/DuckMascot';
 import { SpeechAnswer } from '../components/SpeechAnswer';
 import { NatureBackdrop } from '../components/NatureBackdrop';
-import { colors, spacing, typography } from '../theme/theme';
-import { LANGUAGES, TTS_LOCALE, getWord } from '../data/words';
+import { colors, languageLabels, spacing, typography } from '../theme/theme';
+import { LANGUAGES, LanguageCode, TTS_LOCALE, getWord } from '../data/words';
 import { buildDailySession, ProgressMap, recordAnswer, refreshForgotten, SessionCard } from '../lib/srs';
 import { loadProgress, loadStreak, registerSessionCompletion, saveProgress, saveStreak } from '../lib/storage';
 import { pushSessionResult } from '../lib/cloudSync';
+import { pickVoice } from '../lib/ttsVoice';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Session'>;
+
+const LANG_INTRO_MS = 1500;
 
 export function SessionScreen({ navigation }: Props) {
   const [progress, setProgress] = useState<ProgressMap | null>(null);
@@ -22,8 +25,9 @@ export function SessionScreen({ navigation }: Props) {
   const [index, setIndex] = useState(0);
   const [done, setDone] = useState(false);
   const [correctInSession, setCorrectInSession] = useState(0);
-  const [showManual, setShowManual] = useState(false);
+  const [introLang, setIntroLang] = useState<LanguageCode | null>(null);
   const isAdvancingRef = useRef(false);
+  const lastLangRef = useRef<LanguageCode | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -41,16 +45,30 @@ export function SessionScreen({ navigation }: Props) {
   const current = cards[index];
   const currentWord = current ? getWord(current.wordId) : undefined;
 
-  const speak = useCallback(() => {
+  const speak = useCallback(async () => {
     if (!current || !currentWord) return;
     Speech.stop();
-    Speech.speak(currentWord.translations[current.lang], { language: TTS_LOCALE[current.lang], rate: 0.85 });
+    const voice = await pickVoice(current.lang);
+    Speech.speak(currentWord.translations[current.lang], { language: TTS_LOCALE[current.lang], voice, rate: 0.85 });
   }, [current, currentWord]);
 
+  // Every time the language block changes (including the very first card),
+  // pause on a full flag/name intro before playing audio — makes the accent
+  // switch unmistakable instead of just a small pill on the card.
   useEffect(() => {
     isAdvancingRef.current = false;
-    setShowManual(false);
-    if (current) speak();
+    if (!current) return;
+    if (current.lang !== lastLangRef.current) {
+      lastLangRef.current = current.lang;
+      setIntroLang(current.lang);
+      const timer = setTimeout(() => {
+        setIntroLang(null);
+        speak();
+      }, LANG_INTRO_MS);
+      return () => clearTimeout(timer);
+    }
+    setIntroLang(null);
+    speak();
   }, [index]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const finishSession = useCallback(async (finalProgress: ProgressMap, finalCorrect: number, totalCount: number) => {
@@ -65,8 +83,7 @@ export function SessionScreen({ navigation }: Props) {
 
   const answer = useCallback(
     (correct: boolean) => {
-      // Guards against a double-tap firing this twice before the next
-      // card renders — easy to trigger with an eager 5-year-old's thumb.
+      // Guards against a double-fire before the next card renders.
       if (!progress || !current || isAdvancingRef.current) return;
       isAdvancingRef.current = true;
       const next = recordAnswer(progress, current.wordId, current.lang, correct, Date.now());
@@ -113,6 +130,17 @@ export function SessionScreen({ navigation }: Props) {
     );
   }
 
+  if (introLang) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <Text style={styles.introFlag}>{languageLabels[introLang].flag}</Text>
+          <Text style={styles.introName}>{languageLabels[introLang].name}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -130,17 +158,6 @@ export function SessionScreen({ navigation }: Props) {
         <View style={styles.speechArea}>
           <SpeechAnswer key={`${current.wordId}:${current.lang}`} targetWord={currentWord.translations[current.lang]} locale={TTS_LOCALE[current.lang]} onResult={answer} />
         </View>
-
-        {showManual ? (
-          <View style={styles.answerRow}>
-            <BigButton label="🔁 De novo" onPress={() => answer(false)} color={colors.warn} style={styles.answerButton} />
-            <BigButton label="✅ Acertei" onPress={() => answer(true)} color={colors.success} style={styles.answerButton} />
-          </View>
-        ) : (
-          <Pressable onPress={() => setShowManual(true)} style={styles.manualToggle}>
-            <Text style={styles.manualToggleText}>ou responder manualmente</Text>
-          </Pressable>
-        )}
       </View>
     </SafeAreaView>
   );
@@ -167,8 +184,6 @@ const styles = StyleSheet.create({
   replayButton: { marginTop: spacing.lg, paddingVertical: spacing.sm, paddingHorizontal: spacing.md },
   replayText: { ...typography.body, color: colors.plum },
   speechArea: { width: '100%', marginTop: spacing.md },
-  answerRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.md, width: '100%' },
-  answerButton: { flex: 1 },
-  manualToggle: { marginTop: spacing.md, padding: spacing.xs },
-  manualToggleText: { ...typography.caption, color: colors.inkSoft, textDecorationLine: 'underline' },
+  introFlag: { fontSize: 96 },
+  introName: { ...typography.display, color: colors.ink, marginTop: spacing.md },
 });

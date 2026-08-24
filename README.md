@@ -34,9 +34,13 @@ npx expo run:android     # build de desenvolvimento no Android — necessário p
   (distância de Levenshtein, com limiar mais rígido para palavras curtas). Suporta alvos de
   mais de uma palavra (ex.: "die Sonne"): tenta casar a frase completa e também aceita só o
   substantivo (criança pode "engolir" o artigo sem perder o ponto).
-- `src/components/SpeechAnswer.tsx` — grava a criança falando (`expo-speech-recognition`),
-  pontua com `matchWord` e mostra o veredito; sempre com um atalho para responder manualmente
-  caso o microfone falhe ou a permissão seja negada.
+- `src/components/SpeechAnswer.tsx` — grava a criança falando (`expo-speech-recognition`) e
+  pontua com `matchWord`. O microfone é o único jeito de responder (sem botão manual); se a
+  permissão for negada, mostra um botão "Tentar novamente" para pedir de novo.
+- `src/lib/ttsVoice.ts` — escolhe explicitamente uma voz nativa instalada no aparelho para
+  cada idioma (via `Speech.getAvailableVoicesAsync`), em vez de confiar só no parâmetro
+  `language`, que em alguns aparelhos silenciosamente cai pra voz padrão (inglês) mesmo pedindo
+  outro idioma.
 - `src/illustrations/` — ilustrações vetoriais próprias (contorno "à mão", paleta da tela)
   para cada palavra do banco (`WordIllustration.tsx`), com peças reutilizáveis em `shapes.tsx`
   (cabeça de bichinho, orelhas, olhos, etc.) para manter as 41 ilustrações consistentes entre si.
@@ -46,8 +50,11 @@ npx expo run:android     # build de desenvolvimento no Android — necessário p
 - [x] **M1** — App base: design system, banco de palavras, sessão diária com TTS,
       algoritmo de repetição espaçada local, dashboard local para os pais.
 - [x] **M2** — Captura e avaliação da fala da criança: `expo-speech-recognition` ouve a
-      palavra falada, `matchWord.ts` pontua a transcrição contra o alvo, com fallback manual
-      sempre disponível (mic indisponível/negado, ou erro de reconhecimento).
+      palavra falada, `matchWord.ts` pontua a transcrição contra o alvo. O microfone é o único
+      jeito de responder (não tem mais botão manual); vozes de TTS agora são escolhidas
+      explicitamente por idioma (`ttsVoice.ts`) pra soar nativo, não só com sotaque americano.
+      Antes de cada bloco de idioma, aparece uma tela com a bandeira e o nome do idioma por
+      ~1,5s, deixando a troca óbvia.
 - [x] **M3** — paleta e cenário no estilo pastel/aquarela de "O Pequeno Urso" (parchment +
       tons de floresta/lagoa, `NatureBackdrop.tsx`), mascote com contorno "desenhado à mão"
       (`DuckMascot.tsx`), e as 41 palavras "core" têm ilustração própria em vez de emoji
@@ -56,13 +63,17 @@ npx expo run:android     # build de desenvolvimento no Android — necessário p
       tela de sessão (fica só no Início e no painel dos pais).
 - [x] **Banco de palavras** — expandido de 41 para **1023 palavras por idioma**, cobrindo
       dezenas de categorias (veja `src/data/wordbank/`). Alemão sempre com artigo correto.
-- [x] **M4** — Backend Supabase: autenticação dos pais (email/senha), schema com RLS
-      (`supabase/migrations/0001_init.sql`), sincronização best-effort ao fim de cada sessão,
-      dashboard lendo da nuvem com fallback automático para os dados locais.
+- [x] **M4** — Backend Supabase: schema com RLS (`supabase/migrations/0001_init.sql`) e
+      sincronização best-effort ao fim de cada sessão (`cloudSync.ts`). A tela de login foi
+      removida — o painel dos pais (ícone ⚙️ no canto do Início) sempre lê os dados locais
+      deste aparelho direto; a infra de sync na nuvem fica pronta pra um login futuro, mas
+      hoje não é usada.
 - [ ] **M5** — Publicação: build Android (EAS), versionamento no GitHub.
 - [x] **Preview web** — https://mini-poliglota.vercel.app (deploy manual via Vercel; mostra o
-      design, fluxo e ilustrações, mas sem microfone — reconhecimento de fala é nativo e não
-      roda em navegador). Deploy feito direto (sem GitHub linkado ainda — ver nota abaixo).
+      design e o fluxo, mas sem microfone — reconhecimento de fala é nativo e não roda em
+      navegador). ⚠️ Sem o GitHub linkado (ver nota abaixo), cada deploy é manual e trabalhoso
+      — pode estar um ou dois commits atrasado em relação ao `master`. O código-fonte no
+      GitHub é sempre a fonte da verdade.
 
 ## Configurando o Supabase
 
@@ -92,9 +103,15 @@ são feitos manualmente. Quando conectar:
 - As "figuras" das palavras são emojis por enquanto (zero dependência de assets); trocar por
   ilustrações no estilo do mascote é o foco do M3.
 - Reconhecimento de fala: on-device no Android/iOS (via `SpeechRecognizer`/`SFSpeechRecognizer`,
-  sem custo por chamada), com fallback manual sempre visível. Ainda não testado num Android
-  físico — vale validar a precisão com a fala real da criança e ajustar os limiares em
-  `matchWord.ts` se necessário.
+  sem custo por chamada). É o único jeito de responder — sem botão manual. Se a permissão for
+  negada, um botão "Tentar novamente" pede de novo; se o aparelho não suportar reconhecimento
+  de fala, a sessão fica travada nessa palavra (limitação conhecida, aceita a pedido). Ainda não
+  testado num Android físico — vale validar a precisão com a fala real da criança e ajustar os
+  limiares em `matchWord.ts` se necessário.
+- Vozes de TTS: a seleção explícita de voz nativa (`ttsVoice.ts`) depende do aparelho ter a
+  voz daquele idioma instalada. Em alguns Android sem os pacotes de idioma baixados, ainda vai
+  cair na voz padrão — vale conferir em `Configurações → Idioma e voz de saída → Google
+  Text-to-Speech` se en-US/es-ES/it-IT/de-DE estão instalados.
 - **Banco de 1023 palavras**: as traduções (inclusive os artigos em alemão) foram geradas por
   mim com base no meu conhecimento dos 4 idiomas, sem dicionário/tradutor externo para
   verificação automática. Para vocabulário comum a confiança é alta, mas recomendo uma
