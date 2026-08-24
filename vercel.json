@@ -1,0 +1,8 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "env": {
+    "EXPO_PUBLIC_SUPABASE_URL": "https://oykeuhftnzqzkcghjcsb.supabase.co",
+    "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_myG5kSB0d2dId0X5oerUUA_zGUAQ5yF"
+  }
+}
