@@ -6,6 +6,7 @@ import { ProgressMap } from './srs';
 // by letting the parent pick/create a child instead of always using [0]).
 
 export async function ensureChild(): Promise<string | null> {
+  if (!supabase) return null; // env vars missing/misconfigured — sync stays off
   const { data: userData } = await supabase.auth.getUser();
   const user = userData.user;
   if (!user) return null;
@@ -30,7 +31,7 @@ export async function ensureChild(): Promise<string | null> {
 
 export async function pushSessionResult(progress: ProgressMap, correctCount: number, totalCount: number): Promise<void> {
   const childId = await ensureChild();
-  if (!childId) return; // not signed in — local-only, sync happens next time they sign in
+  if (!childId || !supabase) return; // not signed in / sync off — local-only, sync happens next time
 
   const rows = Object.entries(progress).map(([key, p]) => {
     const [wordId, lang] = key.split(':');
@@ -78,7 +79,7 @@ export interface RemoteDashboardData {
 
 export async function fetchDashboardData(): Promise<RemoteDashboardData | null> {
   const childId = await ensureChild();
-  if (!childId) return null;
+  if (!childId || !supabase) return null;
 
   const [{ data: progress, error: progressError }, { data: sessions, error: sessionsError }] = await Promise.all([
     supabase
