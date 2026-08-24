@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { WordEntry, LanguageCode } from '../data/words';
 import { colors, languageColors, languageLabels, radii, spacing, typography } from '../theme/theme';
+import { WordIllustration } from '../illustrations/WordIllustration';
 
 interface Props {
   word: WordEntry;
@@ -17,7 +18,9 @@ export function WordCard({ word, lang }: Props) {
           {languageLabels[lang].flag} {languageLabels[lang].name}
         </Text>
       </View>
-      <Text style={styles.emoji}>{word.emoji}</Text>
+      <View style={styles.illustration}>
+        <WordIllustration wordId={word.id} emojiFallback={word.emoji} size={110} />
+      </View>
       <Text style={styles.word}>{word.translations[lang]}</Text>
       <Text style={styles.pt}>({word.pt})</Text>
     </View>
@@ -47,7 +50,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.pill,
   },
   flagText: { color: '#fff', fontWeight: '800', fontSize: 14 },
-  emoji: { fontSize: 96, marginTop: spacing.md, marginBottom: spacing.md },
+  illustration: { marginTop: spacing.md, marginBottom: spacing.md },
   word: { ...typography.word, color: colors.ink, textAlign: 'center' },
   pt: { ...typography.caption, color: colors.inkSoft, marginTop: spacing.xs },
 });

@@ -32,6 +32,9 @@ npx expo run:android     # build de desenvolvimento no Android — necessário p
 - `src/components/SpeechAnswer.tsx` — grava a criança falando (`expo-speech-recognition`),
   pontua com `matchWord` e mostra o veredito; sempre com um atalho para responder manualmente
   caso o microfone falhe ou a permissão seja negada.
+- `src/illustrations/` — ilustrações vetoriais próprias (contorno "à mão", paleta da tela)
+  para cada palavra do banco (`WordIllustration.tsx`), com peças reutilizáveis em `shapes.tsx`
+  (cabeça de bichinho, orelhas, olhos, etc.) para manter as 41 ilustrações consistentes entre si.
 
 ## Roteiro de milestones
 
@@ -40,10 +43,11 @@ npx expo run:android     # build de desenvolvimento no Android — necessário p
 - [x] **M2** — Captura e avaliação da fala da criança: `expo-speech-recognition` ouve a
       palavra falada, `matchWord.ts` pontua a transcrição contra o alvo, com fallback manual
       sempre disponível (mic indisponível/negado, ou erro de reconhecimento).
-- [ ] **M3** — em andamento. Feito: paleta e cenário repaginados no estilo pastel/aquarela
-      de "O Pequeno Urso" (parchment + tons de floresta/lagoa, `NatureBackdrop.tsx`), mascote
-      com contorno "desenhado à mão" (`DuckMascot.tsx`). Falta: ilustrações reais no lugar dos
-      emojis nas cartas de palavra.
+- [x] **M3** — paleta e cenário no estilo pastel/aquarela de "O Pequeno Urso" (parchment +
+      tons de floresta/lagoa, `NatureBackdrop.tsx`), mascote com contorno "desenhado à mão"
+      (`DuckMascot.tsx`), e as 41 palavras do banco agora têm ilustração própria em vez de
+      emoji (`src/illustrations/`), com fallback automático para emoji se uma palavra nova
+      for adicionada sem ilustração.
 - [x] **M4** — Backend Supabase: autenticação dos pais (email/senha), schema com RLS
       (`supabase/migrations/0001_init.sql`), sincronização best-effort ao fim de cada sessão,
       dashboard lendo da nuvem com fallback automático para os dados locais.
