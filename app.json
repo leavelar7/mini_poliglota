@@ -1,13 +1,17 @@
 {
   "expo": {
     "name": "mini_poliglota",
-    "slug": "mini_poliglota",
+    "slug": "mini-poliglota",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSSpeechRecognitionUsageDescription": "O Mini Poliglota usa o reconhecimento de fala para saber se você acertou a palavra.",
+        "NSMicrophoneUsageDescription": "O Mini Poliglota usa o microfone para ouvir você falando as palavras."
+      }
     },
     "android": {
       "package": "com.leavelar7.minipoliglota",
@@ -17,7 +21,10 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -30,6 +37,12 @@
           "speechRecognitionPermission": "O Mini Poliglota usa o reconhecimento de fala para saber se você acertou a palavra."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "aaf68ff9-7cff-4c73-9de9-b87dfbc43129"
+      }
+    },
+    "owner": "leavelar77"
   }
 }
